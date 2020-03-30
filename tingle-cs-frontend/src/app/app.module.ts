@@ -18,6 +18,9 @@ import { LoginComponent } from './auth/login/login.component';
 import { HeaderComponent } from './navigation/header/header.component';
 import { SidenavListComponent } from './navigation/sidenav-list/sidenav-list.component';
 import { SignupComponent } from './auth/signup/signup.component';
+import { AdminPageComponent } from './admin-page/admin-page.component';
+import { UserPageComponent } from './user-page/user-page.component';
+import { MakeRequestComponent } from './make-request/make-request.component';
 
 
 @NgModule({
@@ -26,7 +29,10 @@ import { SignupComponent } from './auth/signup/signup.component';
     LoginComponent,
     HeaderComponent,
     SidenavListComponent,
-    SignupComponent
+    SignupComponent,
+    AdminPageComponent,
+    UserPageComponent,
+    MakeRequestComponent
   ],
   imports: [
     BrowserModule,
