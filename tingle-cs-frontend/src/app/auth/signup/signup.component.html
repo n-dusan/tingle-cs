@@ -1,1 +1,20 @@
-<p>signup works!</p>
+<section class="signup-form">
+    <h1 style="text-align: center;">Signup to TingleCS</h1>
+    <form fxLayout="column" fxLayoutAlign="center center" #f="ngForm" (ngSubmit)="onSubmit(f)">
+        <mat-form-field>
+            <input matInput type="email" placeholder="Your E-Mail" ngModel name="email" email required
+                #emailInput="ngModel">
+            <mat-error *ngIf="emailInput.hasError('required')">This field is required!</mat-error>
+            <mat-error *ngIf="!emailInput.hasError('required')">Invalid E-Mail!</mat-error>
+        </mat-form-field>
+        <mat-form-field hintLabel="At least 6 characters long.">
+            <input matInput type="password" placeholder="Your Password" ngModel name="password" required minlength="6"
+                #pwInput="ngModel">
+            <mat-error *ngIf="pwInput.hasError('required')">This field is required!</mat-error>
+        </mat-form-field>
+        <p>Already have an account?
+            <a routerLink="/login">Login</a>
+        </p>
+        <button mat-raised-button color="primary">Submit</button>
+    </form>
+</section>
