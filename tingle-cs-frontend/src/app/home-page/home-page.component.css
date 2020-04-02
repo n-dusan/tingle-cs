@@ -1,0 +1,15 @@
+
+.card {
+    margin-right: 10px;
+    margin: 50px;
+    background-color: rgb(228, 228, 228);
+    height: 250px;
+}
+
+.card-deck{
+    padding-top: 100px;
+    padding-left: 400px;
+    padding-right: 400px;
+}
+
+
