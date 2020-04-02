@@ -22,6 +22,7 @@ import { SignupComponent } from './auth/signup/signup.component';
 import { MakeRequestComponent } from './make-request/make-request.component';
 import { HomePageComponent } from './home-page/home-page.component';
 import { AllCertificatesComponent } from './all-certificates/all-certificates.component';
+import { CertificateIssuingComponent } from './certificate-issuing/certificate-issuing.component';
 
 
 @NgModule({
@@ -33,7 +34,8 @@ import { AllCertificatesComponent } from './all-certificates/all-certificates.co
     SignupComponent,
     MakeRequestComponent,
     HomePageComponent,
-    AllCertificatesComponent
+    AllCertificatesComponent,
+    CertificateIssuingComponent
   ],
   imports: [
     BrowserModule,

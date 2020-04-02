@@ -1,0 +1,41 @@
+<section class="header-section">
+    <h1>New Certificate</h1>
+</section>
+<div class="form-container" fxLayout="column" fxLayoutAlign="center center">
+
+    <form fxFlex="80%" fxLayout="column" fxLayoutAlign="center center">
+        <section class="form-section" fxLayout="column">
+            <h2>Subject Data</h2>
+            <mat-form-field>
+                <label for="commonName">Common Name: </label>
+                <input id="commonName" matInput type="text" name="commonName" required>
+            </mat-form-field>
+            <mat-form-field>
+                <label for="organizationUnit">Organization Unit: </label>
+                <input id="organizationUnit" matInput type="text" name="organizationUnit" required>
+            </mat-form-field>
+            <mat-form-field>
+                <label for="organizationName">Organization Name: </label>
+                <input id="organizationName" matInput type="text" name="organizationName" required>
+            </mat-form-field>
+            <mat-form-field>
+                <label for="localityName">Locality Name: </label>
+                <input id="localityName" matInput type="text" name="localityName" required>
+            </mat-form-field>
+            <mat-form-field>
+                <label for="statneName">State Name: </label>
+                <input id="locstatneNameality" matInput type="text" name="statneName" required>
+            </mat-form-field>
+            <mat-form-field>
+                <label for="country">Country: </label>
+                <input id="country" matInput type="text" name="country" required>
+            </mat-form-field>
+        </section>
+        
+        <section class="form-section" fxLayout="column">
+            <h2>Issuer Data</h2>
+        </section>
+
+    </form>
+
+</div>
