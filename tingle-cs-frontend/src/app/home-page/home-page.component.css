@@ -1,15 +1,13 @@
-
-.card {
-    margin-right: 10px;
-    margin: 50px;
-    background-color: rgb(228, 228, 228);
-    height: 250px;
+.admin-home-content {
+    text-align: center;
+    padding: 25px;
 }
 
-.card-deck{
-    padding-top: 100px;
-    padding-left: 400px;
-    padding-right: 400px;
+.admin-home-banner {
+    text-align: center;
+    padding: 25px;
 }
 
-
+.matcard {
+    width: 30%;
+}
