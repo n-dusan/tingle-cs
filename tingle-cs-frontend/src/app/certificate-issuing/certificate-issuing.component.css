@@ -1,14 +1,11 @@
 .header-section {
+    display: block;
     text-align: center;
     padding: 25px;
 }
 
 
 .form-section {
-    border: 1px solid rgba(98, 0, 128, 0.205);
-    border-radius: 25px;
-    background-color: rgba(66, 0, 128, 0.075);;
-    padding: 25px;
     margin: 5px;
 }
 
