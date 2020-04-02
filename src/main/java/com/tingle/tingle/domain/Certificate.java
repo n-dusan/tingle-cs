@@ -8,8 +8,6 @@ import java.io.Serializable;
 @Entity
 public class Certificate implements Serializable {
 
-
-
     private static final long serialVersionUID = 1L;
 
     @Id
@@ -31,8 +29,7 @@ public class Certificate implements Serializable {
 
     public Certificate() {}
 
-    public Certificate(Long id, String serialNumber, String alias, boolean active, Role role) {
-        this.id = id;
+    public Certificate(String serialNumber, String alias, boolean active, Role role) {
         this.serialNumber = serialNumber;
         this.alias = alias;
         this.active = active;

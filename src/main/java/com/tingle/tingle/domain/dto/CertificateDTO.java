@@ -2,6 +2,9 @@ package com.tingle.tingle.domain.dto;
 
 import com.tingle.tingle.domain.enums.Role;
 
+/**
+ * DTO koji ce odlaziti u tabelu koja prikazuje spisak svih sertifikata
+ * */
 public class CertificateDTO {
 
     private Long id;
