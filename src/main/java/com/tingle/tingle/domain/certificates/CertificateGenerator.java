@@ -1,5 +1,10 @@
 package com.tingle.tingle.domain.certificates;
 
+import org.bouncycastle.asn1.ASN1ObjectIdentifier;
+import org.bouncycastle.asn1.x509.BasicConstraints;
+import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.asn1.x509.KeyUsage;
+import org.bouncycastle.cert.CertIOException;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
@@ -23,7 +28,7 @@ public class CertificateGenerator {
         Security.addProvider(new BouncyCastleProvider());
     }
 
-    public X509Certificate generateCertificate(SubjectData subjectData, IssuerData issuerData) {
+    public X509Certificate generateCertificate(SubjectData subjectData, IssuerData issuerData, boolean isCertificateAuthority) {
         try {
 
             JcaContentSignerBuilder builder = new JcaContentSignerBuilder("SHA256WithRSAEncryption");
@@ -39,7 +44,13 @@ public class CertificateGenerator {
                     subjectData.getPublicKey());
             X509CertificateHolder certHolder = certGen.build(contentSigner);
 
-            //TODO: dodati potrebne ekstenzije za sertifikate (namenu i da li je CA ili nije)
+            //Ekstenzije za sertifikate (namenu i da li je CA ili nije)
+            // Basic Constraints
+            BasicConstraints basicConstraints = new BasicConstraints(isCertificateAuthority); // <-- true for CA, false for EndEntity
+
+            certGen.addExtension(new ASN1ObjectIdentifier("2.5.29.19"), true, basicConstraints); // Basic Constraints is usually marked as critical.
+            certGen.addExtension(Extension.keyUsage, true, new KeyUsage(KeyUsage.digitalSignature)); //Key is used for digital signatures https://docs.oracle.com/javame/8.0/api/satsa_extensions_api/com/oracle/crypto/cert/X509Certificate.KeyUsage.html
+
 
             JcaX509CertificateConverter certConverter = new JcaX509CertificateConverter();
             certConverter = certConverter.setProvider("BC");
@@ -54,6 +65,8 @@ public class CertificateGenerator {
         } catch (OperatorCreationException e) {
             e.printStackTrace();
         } catch (CertificateException e) {
+            e.printStackTrace();
+        } catch (CertIOException e) {
             e.printStackTrace();
         }
         return null;

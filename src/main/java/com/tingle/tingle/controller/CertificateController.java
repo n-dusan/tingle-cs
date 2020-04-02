@@ -3,6 +3,7 @@ package com.tingle.tingle.controller;
 import com.tingle.tingle.config.keystores.KeyStoreConfig;
 import com.tingle.tingle.domain.dto.CertificateDTO;
 import com.tingle.tingle.service.CertificateService;
+import com.tingle.tingle.service.KeyStoreService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,7 +29,7 @@ public class CertificateController {
     private CertificateService certificateService;
 
     @Autowired
-    private KeyStoreConfig config;
+    private KeyStoreService keyStoreService;
 
     /**
      * @return list of all certificates */
@@ -39,13 +40,13 @@ public class CertificateController {
 
     /**
      * @param: literally nothing
-     * @return: list of all root certificates in the database, also, prints out in the console
+     * @return: list of all root certificates in the database, also prints out in the console
      * the created certificate in string format
      * */
     @PutMapping(value="/new-root")
     public ResponseEntity<List<CertificateDTO>> makeNewRoot() {
         try {
-            config.generateRootKeyStore();
+            keyStoreService.generateRootKeyStore();
             return new ResponseEntity<List<CertificateDTO>>(certificateService.findAll(), HttpStatus.OK);
         } catch (CertificateException e) {
             e.printStackTrace();
@@ -63,4 +64,9 @@ public class CertificateController {
 
         return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+
+//    @GetMapping(value="/get/serial-number={serialNumber}/role={certificateRole}")
+//    public ResponseEntity<>
+
 }

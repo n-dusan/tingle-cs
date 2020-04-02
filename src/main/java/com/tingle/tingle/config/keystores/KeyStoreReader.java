@@ -30,6 +30,8 @@ public class KeyStoreReader {
             e.printStackTrace();
         }
     }
+
+
     /**
      * Zadatak ove funkcije jeste da ucita podatke o izdavaocu i odgovarajuci privatni kljuc.
      * Ovi podaci se mogu iskoristiti da se novi sertifikati izdaju.
@@ -142,11 +144,8 @@ public class KeyStoreReader {
         List<Certificate> certList = new ArrayList<Certificate>();
         try {
 
-
-
             KeyStore ks = KeyStore.getInstance("JKS", "SUN");
             ks.load(is, password);
-
 
             Enumeration<String> enumeration = ks.aliases();
             while(enumeration.hasMoreElements()) {

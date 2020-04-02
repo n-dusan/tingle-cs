@@ -12,6 +12,7 @@ public class CertificateDTO {
     private String alias;
     private boolean active;
 
+
     private Role certificateRole;
 
 
@@ -24,6 +25,8 @@ public class CertificateDTO {
         this.active = active;
         this.certificateRole = role;
     }
+
+
 
     public Long getId() {
         return id;

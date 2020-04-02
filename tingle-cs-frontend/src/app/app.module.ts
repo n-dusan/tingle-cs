@@ -22,6 +22,9 @@ import { SignupComponent } from './auth/signup/signup.component';
 import { MakeRequestComponent } from './make-request/make-request.component';
 import { HomePageComponent } from './home-page/home-page.component';
 import { AllCertificatesComponent } from './all-certificates/all-certificates.component';
+import { AllCertificatesListComponent } from './all-certificates/all-certificates-list/all-certificates-list.component';
+import { AllCertificatesItemComponent } from './all-certificates/all-certificates-item/all-certificates-item.component';
+import { HttpClientModule } from '@angular/common/http';
 
 
 @NgModule({
@@ -33,7 +36,9 @@ import { AllCertificatesComponent } from './all-certificates/all-certificates.co
     SignupComponent,
     MakeRequestComponent,
     HomePageComponent,
-    AllCertificatesComponent
+    AllCertificatesComponent,
+    AllCertificatesListComponent,
+    AllCertificatesItemComponent
   ],
   imports: [
     BrowserModule,
@@ -47,7 +52,8 @@ import { AllCertificatesComponent } from './all-certificates/all-certificates.co
     MatButtonModule,
     MatFormFieldModule,
     MatInputModule,
-    MatCardModule
+    MatCardModule,
+    HttpClientModule
   ],
   providers: [],
   bootstrap: [AppComponent]

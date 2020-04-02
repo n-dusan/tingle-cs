@@ -15,12 +15,10 @@ public class CertificateX500NameDTO {
     private String C;
     private String E;
     private String OU;
-
     private String serialNumber;
 
-
     //rola je tip sertifikata -> ROOT, END_ENTITY ili INTERMEDIATE, sa fronta se mapira kao string
-    private Role role;
+    private Role certificateRole;
     //admin unosi alias pod kojim ce se cuvati sertifikat
     private String alias;
 
@@ -76,12 +74,12 @@ public class CertificateX500NameDTO {
         E = e;
     }
 
-    public Role getRole() {
-        return role;
+    public Role getCertificateRole() {
+        return certificateRole;
     }
 
-    public void setRole(Role role) {
-        this.role = role;
+    public void setCertificateRole(Role certificateRole) {
+        this.certificateRole = certificateRole;
     }
 
     public String getAlias() {

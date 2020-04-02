@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.tingle.tingle.domain.Certificate;
 
+import java.io.FileNotFoundException;
 import java.math.BigInteger;
 import java.security.*;
 import java.security.cert.CertificateException;
@@ -21,6 +22,7 @@ import java.security.cert.X509Certificate;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+
 
 @Service
 public class CertificateService {
@@ -45,15 +47,23 @@ public class CertificateService {
                     certificate.getSerialNumber(),
                     certificate.getAlias(),
                     certificate.isActive(),
-                    certificate.getCertificateRole()
-            );
+                    certificate.getCertificateRole());
 
             dtoList.add(dto);
         }
-
         return dtoList;
     }
 
+//    public List<CertificateX500NameDTO> findAllCertificates() throws FileNotFoundException {
+//        List<CertificateX500NameDTO> dtoList = new ArrayList<CertificateX500NameDTO>();
+//        List<X509Certificate>  x509rootList = keyStoreService.findKeyStoreCertificates(Role.ROOT);
+//
+//        for (X509Certificate x509Certificate : x509rootList) {
+//            CertificateX500NameDTO dto = new CertificateX500NameDTO();
+//
+//        }
+//
+//    }
 
     /**
      * Metoda generiše self-signed sertifikat i čuva u odgovarajući .jks fajl (root.jks)
@@ -67,7 +77,7 @@ public class CertificateService {
         SubjectData subject = generateSubjectData(dto);
         IssuerData issuer = generateIssuerData(dto, subject.getPrivateKey());
 
-        X509Certificate cert = certificateGenerator.generateCertificate(subject, issuer);
+        X509Certificate cert = certificateGenerator.generateCertificate(subject, issuer, true);
         //verify the self signed cert
         cert.verify(subject.getPublicKey());
 
@@ -112,8 +122,6 @@ public class CertificateService {
         Date startDate = iso8601Formater.parse(startDateString);
         Date endDate = iso8601Formater.parse(endDateString);
 
-
-
         //Serial number je vazan, za sad JAKO VELIKI random broj
         BigInteger upperLimit = new BigInteger("1000000000000");
         BigInteger randomNumber;
@@ -156,10 +164,8 @@ public class CertificateService {
         //TODO: id usera koji kreira zahtev, sad je hardkodovano
         builder.addRDN(BCStyle.UID, "123456");
 
-
         return new IssuerData(privateKey, builder.build());
     }
-
 
 
 }

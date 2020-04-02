@@ -1,24 +1,9 @@
-<div class="table-container" fxLayout fxLayoutAlign="center">
-    <table class="table table-hover table-sm" style='font-size:130%'
-    fxFlex="80%">
-        <thead >
-            <tr height="40px">
-                <th>Id</th>
-                <th>Serial number</th>
-                <th>Alias</th>
-                <th>Active</th>
-                <th>Role</th>
-    
-            </tr>
-        </thead>
-        <tbody>
-            <!-- <tr *ngFor="let certificate of certificates">  
-                        <td>{{certificate.id}}</td>  
-                        <td>{{certificate.serialNumber}}</td>  
-                        <td>{{certificate.alias}}</td>
-                        <td>{{certificate.active}}</td>
-                        <td>{{certificate.role}}</td>  
-                 </tr>    -->
-        </tbody><br>
-    </table>
+<div class="row">
+    <div class="col-md-6">
+        <app-all-certificates-list></app-all-certificates-list>
+    </div>
+
+    <div class="col-md-6">
+        <app-all-certificates-item *ngIf="selectedCertificate"></app-all-certificates-item>
+    </div>
 </div>
