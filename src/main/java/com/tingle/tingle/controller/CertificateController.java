@@ -8,7 +8,11 @@ import com.tingle.tingle.service.KeyStoreService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.naming.InvalidNameException;
 import java.io.FileNotFoundException;
@@ -100,6 +104,29 @@ public class CertificateController {
         List<CertificateX500NameDTO> certs = this.certificateService.getCertificateCASubjectData();
 
         return new ResponseEntity<List<CertificateX500NameDTO>>(certs, HttpStatus.OK);
+    }
+
+    
+    @PutMapping(value = "/new-ca/{alias}")
+    public ResponseEntity<List<CertificateDTO>> makeNewCA(@PathVariable("alias") String alias) {
+        try {
+            keyStoreService.generateCAKeyStore(alias);
+            return new ResponseEntity<List<CertificateDTO>>(certificateService.findAll(), HttpStatus.OK);
+        } catch (CertificateException e) {
+            e.printStackTrace();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (SignatureException e) {
+            e.printStackTrace();
+        } catch (NoSuchProviderException e) {
+            e.printStackTrace();
+        } catch (InvalidKeyException e) {
+            e.printStackTrace();
+        }
+
+        return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
 }

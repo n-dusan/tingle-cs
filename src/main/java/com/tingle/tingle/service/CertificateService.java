@@ -1,6 +1,8 @@
 package com.tingle.tingle.service;
 
 import com.tingle.tingle.config.CertificateConfig;
+import com.tingle.tingle.config.keystores.KeyStoreConfig;
+import com.tingle.tingle.config.keystores.KeyStoreReader;
 import com.tingle.tingle.domain.certificates.CertificateGenerator;
 import com.tingle.tingle.domain.certificates.IssuerData;
 import com.tingle.tingle.domain.certificates.SubjectData;
@@ -8,13 +10,8 @@ import com.tingle.tingle.domain.dto.CertificateDTO;
 import com.tingle.tingle.domain.dto.CertificateX500NameDTO;
 import com.tingle.tingle.domain.enums.Role;
 import com.tingle.tingle.repository.CertificateRepository;
-import org.bouncycastle.asn1.x500.AttributeTypeAndValue;
-import org.bouncycastle.asn1.x500.RDN;
-import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.X500NameBuilder;
 import org.bouncycastle.asn1.x500.style.BCStyle;
-import org.bouncycastle.asn1.x500.style.IETFUtils;
-import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.tingle.tingle.domain.Certificate;
@@ -22,7 +19,6 @@ import com.tingle.tingle.domain.Certificate;
 import java.io.FileNotFoundException;
 import java.math.BigInteger;
 import java.security.*;
-import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.text.ParseException;
@@ -47,6 +43,9 @@ public class CertificateService {
 
     @Autowired
     private KeyStoreService keyStoreService;
+    
+    @Autowired 
+    private KeyStoreReader keyStoreReader;
 
 
     public List<CertificateDTO> findAll() {
@@ -65,7 +64,6 @@ public class CertificateService {
         }
         return dtoList;
     }
-
 
     /**
      * @param serialNumber: Serial number of a certificate that's being converted
@@ -161,18 +159,74 @@ public class CertificateService {
         System.out.println("-------------------------------------------------------");
 
         //save the cert in the keystore
-        keyStoreService.saveSelfSignedCertificate(cert, dto.getAlias(), issuer.getPrivateKey());
+        keyStoreService.saveCertificate(cert, dto.getAlias(), issuer.getPrivateKey(), Role.ROOT);
 
         //save the cert in the database -> to be used when ocsp implementation occurs
         this.certificateRepository.save(new Certificate(subject.getSerialNumber(),dto.getAlias(), true, Role.ROOT));
     }
+    
+    public void generateCACertificate(CertificateX500NameDTO dto, String alias) throws NoSuchProviderException, CertificateException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, ParseException {
+    	
+    	SubjectData subject = generateSubjectData(dto);
+    	List<CertificateDTO> list = findAll();
+    	for(CertificateDTO c : list) {
+    		if(c.getAlias().equals(alias)) {
+    			if(c.getCertificateRole() == Role.ROOT) {
+    				
+    				IssuerData issuer = keyStoreReader.readIssuerFromStore(KeyStoreConfig.ROOT_KEYSTORE_LOCATION,
+                            c.getAlias(), KeyStoreConfig.ROOT_KEYSTORE_PASSWORD.toCharArray(),
+                            KeyStoreConfig.ROOT_KEYSTORE_PASSWORD.toCharArray());
 
+    				X509Certificate cert = certificateGenerator.generateCertificate(subject, issuer, true);
+    				System.out.println("\n===== Certificate issuer=====");
+    		        System.out.println(cert.getIssuerX500Principal().getName());
+    		        System.out.println("\n===== Certicate owner =====");
+    		        System.out.println(cert.getSubjectX500Principal().getName());
+    		        System.out.println("\n===== Certificate =====");
+    		        System.out.println("-------------------------------------------------------");
+    		        System.out.println(cert);
+    		        System.out.println("-------------------------------------------------------");
 
+    		        
+    		        keyStoreService.saveCertificate(cert, dto.getAlias(), issuer.getPrivateKey(), Role.INTERMEDIATE);
+    		        this.certificateRepository.save(new Certificate(subject.getSerialNumber(), dto.getAlias(), true, Role.INTERMEDIATE));
+    			}else {
+    				//kako cemo u ovom slucaju promeniti alias za novi sertifikat?
+    				
+    				IssuerData issuer = keyStoreReader.readIssuerFromStore(KeyStoreConfig.INTERMEDIATE_KEYSTORE_LOCATION,
+                            c.getAlias(),
+                            KeyStoreConfig.INTERMEDIATE_KEYSTORE_PASSWORD.toCharArray(),
+                            KeyStoreConfig.INTERMEDIATE_KEYSTORE_PASSWORD.toCharArray());
+
+    				X509Certificate cert = certificateGenerator.generateCertificate(subject, issuer, true);
+    				System.out.println("\n===== Certificate issuer=====");
+    		        System.out.println(cert.getIssuerX500Principal().getName());
+    		        System.out.println("\n===== Certicate owner =====");
+    		        System.out.println(cert.getSubjectX500Principal().getName());
+    		        System.out.println("\n===== Certificate =====");
+    		        System.out.println("-------------------------------------------------------");
+    		        System.out.println(cert);
+    		        System.out.println("-------------------------------------------------------");
+
+    		        keyStoreService.saveCertificate(cert, dto.getAlias(), issuer.getPrivateKey(), Role.INTERMEDIATE);
+    		        this.certificateRepository.save(new Certificate(subject.getSerialNumber(),dto.getAlias(), true, Role.INTERMEDIATE));
+    			}
+    		}
+    	}
+    	
+    }
+
+    
     private SubjectData generateSubjectData(CertificateX500NameDTO dto) throws ParseException {
 
-        //generate keyPair with longer key size
-        //TODO: based on role, generate key length
-        KeyPair keyPair = certificateGenerator.generateKeyPair(true);
+        //based on role, generate RSA key pair length
+        KeyPair keyPair;
+
+        if (dto.getCertificateRole() == Role.ROOT || dto.getCertificateRole() == Role.INTERMEDIATE) {
+            keyPair = certificateGenerator.generateKeyPair(true);
+        } else {
+            keyPair = certificateGenerator.generateKeyPair(false);
+        }
 
         //Datumi od kad do kad vazi sertifikat
         Calendar cal = new GregorianCalendar();
@@ -181,9 +235,15 @@ public class CertificateService {
 
         String startDateString = iso8601Formater.format(cal.getTime());
 
-        //TODO: based on role, set expiration date
-        //20 godina sam stavio da traje root :D
-        cal.add(Calendar.YEAR, CertificateConfig.ROOT_YEARS);
+        //based on role, set certificate expiration date
+        if(dto.getCertificateRole() == Role.ROOT) {
+            cal.add(Calendar.YEAR, CertificateConfig.ROOT_YEARS);
+        } else if(dto.getCertificateRole() == Role.INTERMEDIATE) {
+            cal.add(Calendar.YEAR, CertificateConfig.INTERMEDIATE_YEARS);
+        } else {
+            cal.add(Calendar.YEAR, CertificateConfig.END_ENTITY_YEARS);
+        }
+
         String endDateString = iso8601Formater.format(cal.getTime());
 
         System.out.println("Start date: " + startDateString);

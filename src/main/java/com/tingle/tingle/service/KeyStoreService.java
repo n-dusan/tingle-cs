@@ -32,11 +32,22 @@ public class KeyStoreService {
 
 
 
-    public void saveSelfSignedCertificate(X509Certificate certificate, String alias, PrivateKey privateKey) {
-        keyStoreWriter.loadKeyStore(KeyStoreConfig.ROOT_KEYSTORE_LOCATION, KeyStoreConfig.ROOT_KEYSTORE_PASSWORD.toCharArray());
-        //certificate password is the same as keystore password
-        keyStoreWriter.write(alias, privateKey, KeyStoreConfig.ROOT_KEYSTORE_PASSWORD.toCharArray(), certificate);
-        keyStoreWriter.saveKeyStore(KeyStoreConfig.ROOT_KEYSTORE_LOCATION, KeyStoreConfig.ROOT_KEYSTORE_PASSWORD.toCharArray());
+    public void saveCertificate(X509Certificate certificate, String alias, PrivateKey privateKey, Role role) {
+
+        if(role == Role.ROOT) {
+            keyStoreWriter.loadKeyStore(KeyStoreConfig.ROOT_KEYSTORE_LOCATION, KeyStoreConfig.ROOT_KEYSTORE_PASSWORD.toCharArray());
+            //certificate password is the same as keystore password
+            keyStoreWriter.write(alias, privateKey, KeyStoreConfig.ROOT_KEYSTORE_PASSWORD.toCharArray(), certificate);
+            keyStoreWriter.saveKeyStore(KeyStoreConfig.ROOT_KEYSTORE_LOCATION, KeyStoreConfig.ROOT_KEYSTORE_PASSWORD.toCharArray());
+        } else if(role == Role.INTERMEDIATE) {
+            keyStoreWriter.loadKeyStore(KeyStoreConfig.INTERMEDIATE_KEYSTORE_LOCATION, KeyStoreConfig.INTERMEDIATE_KEYSTORE_PASSWORD.toCharArray());
+            keyStoreWriter.write(alias, privateKey, KeyStoreConfig.INTERMEDIATE_KEYSTORE_PASSWORD.toCharArray(), certificate);
+            keyStoreWriter.saveKeyStore(KeyStoreConfig.INTERMEDIATE_KEYSTORE_LOCATION, KeyStoreConfig.INTERMEDIATE_KEYSTORE_PASSWORD.toCharArray());
+        } else {
+            keyStoreWriter.loadKeyStore(KeyStoreConfig.END_ENTITY_KEYSTORE_LOCATION, KeyStoreConfig.END_ENTITY_KEYSTORE_PASSWORD.toCharArray());
+            keyStoreWriter.write(alias, privateKey, KeyStoreConfig.END_ENTITY_KEYSTORE_PASSWORD.toCharArray(), certificate);
+            keyStoreWriter.saveKeyStore(KeyStoreConfig.END_ENTITY_KEYSTORE_LOCATION, KeyStoreConfig.END_ENTITY_KEYSTORE_PASSWORD.toCharArray());
+        }
     }
 
 
@@ -93,6 +104,26 @@ public class KeyStoreService {
 
         //sacuvaj stanje keystora
         keyStoreWriter.saveKeyStore(KeyStoreConfig.ROOT_KEYSTORE_LOCATION, KeyStoreConfig.ROOT_KEYSTORE_PASSWORD.toCharArray());
+    }
+
+    public void generateCAKeyStore(String alias) throws CertificateException, ParseException, NoSuchAlgorithmException, SignatureException, NoSuchProviderException, InvalidKeyException {
+        keyStoreWriter.loadKeyStore(null, KeyStoreConfig.INTERMEDIATE_KEYSTORE_PASSWORD.toCharArray());
+
+        CertificateX500NameDTO dto = new CertificateX500NameDTO();
+        dto.setAlias("alias1");
+        dto.setC(CertificateConfig.INTERMEDIATE_C);
+        dto.setCN(CertificateConfig.INTERMEDIATE_CN);
+        dto.setE(CertificateConfig.INTERMEDIATE_MAIL);
+        dto.setL(CertificateConfig.INTERMEDIATE_L);
+        dto.setOU(CertificateConfig.INTERMEDIATE_OU);
+        dto.setO(CertificateConfig.INTERMEDIATE_O);
+        dto.setST(CertificateConfig.INTERMEDIATE_ST);
+        dto.setCertificateRole(Role.INTERMEDIATE);
+
+        certificateService.generateCACertificate(dto,alias);
+
+        //sacuvaj stanje keystora
+        keyStoreWriter.saveKeyStore(KeyStoreConfig.INTERMEDIATE_KEYSTORE_LOCATION, KeyStoreConfig.INTERMEDIATE_KEYSTORE_PASSWORD.toCharArray());
     }
 
 

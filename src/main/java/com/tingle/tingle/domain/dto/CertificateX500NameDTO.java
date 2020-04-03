@@ -25,7 +25,8 @@ public class CertificateX500NameDTO {
     //TODO: fali lozinka, ako se implementira :D
 
     public CertificateX500NameDTO() {}
-
+    
+   
     public String getCN() {
         return CN;
     }

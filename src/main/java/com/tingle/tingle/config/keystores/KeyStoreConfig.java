@@ -14,4 +14,7 @@ public class KeyStoreConfig {
     public static final String END_ENTITY_KEYSTORE_PASSWORD = "end-entity";
 
 
+    public KeyStoreConfig() {}
+
+   
 }

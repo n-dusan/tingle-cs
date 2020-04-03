@@ -18,5 +18,15 @@ public class CertificateConfig {
     public static final String ROOT_ST = "Vojvodina";
     public static final String ROOT_C = "Serbia";
     public static final String ROOT_MAIL = "tingle@tingle.org";
+    
+    public static final String INTERMEDIATE_CN = "*.tingle.org";
+    public static final String INTERMEDIATE_O = "UNS-FTN";
+    public static final String INTERMEDIATE_OU = "Katedra za informatiku";
+    public static final String INTERMEDIATE_L = "Novi Sad";
+    public static final String INTERMEDIATE_ST = "Vojvodina";
+    public static final String INTERMEDIATE_C = "Serbia";
+    public static final String INTERMEDIATE_MAIL = "service@gmail.com";
+   
+    
 
 }
