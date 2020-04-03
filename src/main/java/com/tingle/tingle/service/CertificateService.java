@@ -8,8 +8,13 @@ import com.tingle.tingle.domain.dto.CertificateDTO;
 import com.tingle.tingle.domain.dto.CertificateX500NameDTO;
 import com.tingle.tingle.domain.enums.Role;
 import com.tingle.tingle.repository.CertificateRepository;
+import org.bouncycastle.asn1.x500.AttributeTypeAndValue;
+import org.bouncycastle.asn1.x500.RDN;
+import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.X500NameBuilder;
 import org.bouncycastle.asn1.x500.style.BCStyle;
+import org.bouncycastle.asn1.x500.style.IETFUtils;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.tingle.tingle.domain.Certificate;
@@ -17,11 +22,18 @@ import com.tingle.tingle.domain.Certificate;
 import java.io.FileNotFoundException;
 import java.math.BigInteger;
 import java.security.*;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import javax.naming.InvalidNameException;
+import javax.naming.ldap.LdapName;
+import javax.naming.ldap.Rdn;
 
 
 @Service
@@ -54,16 +66,74 @@ public class CertificateService {
         return dtoList;
     }
 
-//    public List<CertificateX500NameDTO> findAllCertificates() throws FileNotFoundException {
-//        List<CertificateX500NameDTO> dtoList = new ArrayList<CertificateX500NameDTO>();
-//        List<X509Certificate>  x509rootList = keyStoreService.findKeyStoreCertificates(Role.ROOT);
-//
-//        for (X509Certificate x509Certificate : x509rootList) {
-//            CertificateX500NameDTO dto = new CertificateX500NameDTO();
-//
-//        }
-//
-//    }
+
+    /**
+     * @param serialNumber: Serial number of a certificate that's being converted
+     * @param certificateRole: ROOT;INTERMEDIATE;END_ENTITY, used for searching the corresponding keystore
+     *
+     * @return DTO Array where [0] element is Issuer DTO, and [1] element is SubjectDTO
+     *
+     * can be used for displaying basic issuer data in the form
+     *
+     * */
+    public CertificateX500NameDTO[] getCertificateIssuerAndSubjectData(String serialNumber, Role certificateRole) {
+        try {
+            List<X509Certificate> x509list = keyStoreService.findKeyStoreCertificates(certificateRole);
+            for (X509Certificate x509Certificate : x509list) {
+                if(x509Certificate.getSerialNumber().toString().equals(serialNumber)) {
+
+                    String x500SubjectName = x509Certificate.getSubjectX500Principal().getName();
+                    String x500IssuerName = x509Certificate.getIssuerX500Principal().getName();
+                    CertificateX500NameDTO[] x509dto =  convertFromX500Principals(x500IssuerName, x500SubjectName);
+
+                    x509dto[1].setCertificateRole(certificateRole);
+                    x509dto[1].setSerialNumber(serialNumber);
+
+                    return x509dto;
+                }
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }   catch (InvalidNameException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
+     * Ana, zanimacete ova metoda koja vraca listu svih CA sertifikata, koji ti mogu upasti u onaj tvoj select.
+     * Trebalo bi da sadrzi sve neophodne podatke o mogucim issuerima.
+     * Napravi end-point na kontroleru pa ga uvezi sa svojim frontom.
+     * TODO: validirati lanac sertifikata, da bi izdavanje novog sertifikata imalo smisla
+     * */
+
+    public List<CertificateX500NameDTO> getCertificateCASubjectData() throws FileNotFoundException, InvalidNameException {
+
+        List<X509Certificate> x509rootList = keyStoreService.findKeyStoreCertificates(Role.ROOT);
+        List<X509Certificate> x509intermediateList = keyStoreService.findKeyStoreCertificates(Role.INTERMEDIATE);
+
+        List<X509Certificate> cAJoinedList = Stream.concat(x509rootList.stream(), x509intermediateList.stream())
+                .collect(Collectors.toList());
+
+        List<CertificateX500NameDTO> cADTOList = new ArrayList<CertificateX500NameDTO>();
+
+        for (X509Certificate x509Certificate : cAJoinedList) {
+
+            String x500SubjectName = x509Certificate.getSubjectX500Principal().getName();
+            CertificateX500NameDTO[] x509dto =  convertFromX500Principals(x500SubjectName, x500SubjectName);
+            String serialNumber = x509Certificate.getSerialNumber().toString();
+            x509dto[1].setSerialNumber(serialNumber);
+            Certificate repositoryCertificate = certificateRepository.findCertificateBySerialNumber(serialNumber);
+
+            //Izvuci rolu sertifikata, nazalost iz repozitorijuma
+            x509dto[1].setCertificateRole(repositoryCertificate.getCertificateRole());
+
+            cADTOList.add(x509dto[1]);
+        }
+
+        return cADTOList;
+    }
+
 
     /**
      * Metoda generiše self-signed sertifikat i čuva u odgovarajući .jks fajl (root.jks)
@@ -165,6 +235,50 @@ public class CertificateService {
         builder.addRDN(BCStyle.UID, "123456");
 
         return new IssuerData(privateKey, builder.build());
+    }
+
+
+    /**
+     * don't even look at it, black-box.
+     * */
+    private CertificateX500NameDTO[] convertFromX500Principals(String subjectDN, String issuerDN) throws InvalidNameException {
+
+        CertificateX500NameDTO[] issuerAndSubjectDTO = new CertificateX500NameDTO[2];
+
+        String[] x500principals = { issuerDN, subjectDN };
+
+        for(int i = 0; i < x500principals.length; i++) {
+
+            issuerAndSubjectDTO[i] = new CertificateX500NameDTO();
+
+            LdapName ln = new LdapName(x500principals[i]);
+
+            for (Rdn rdn : ln.getRdns()) {
+                if (rdn.getType().equalsIgnoreCase("CN")) {
+                    issuerAndSubjectDTO[i].setCN(rdn.getValue().toString());
+                }
+                if (rdn.getType().equalsIgnoreCase("C")) {
+                    issuerAndSubjectDTO[i].setC(rdn.getValue().toString());
+                }
+                if (rdn.getType().equalsIgnoreCase("OU")) {
+                    issuerAndSubjectDTO[i].setOU(rdn.getValue().toString());
+                }
+                if (rdn.getType().equalsIgnoreCase("O")) {
+                    issuerAndSubjectDTO[i].setO(rdn.getValue().toString());
+                }
+                if (rdn.getType().equalsIgnoreCase("ST")) {
+                    issuerAndSubjectDTO[i].setST(rdn.getValue().toString());
+                }
+                if (rdn.getType().equalsIgnoreCase("L")) {
+                    issuerAndSubjectDTO[i].setL(rdn.getValue().toString());
+                }
+                if (rdn.getType().equalsIgnoreCase("E")) {
+                    issuerAndSubjectDTO[i].setE(rdn.getValue().toString());
+                }
+            }
+        }
+
+        return issuerAndSubjectDTO;
     }
 
 

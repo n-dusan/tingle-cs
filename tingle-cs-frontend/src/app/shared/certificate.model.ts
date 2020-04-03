@@ -6,11 +6,11 @@ export class Certificate {
         public alias: string,
         public active: boolean,
         public certificateRole: string,
-        public CN: string,
-        public O: string,
-        public L: string,
-        public ST: string,
-        public C: string,
-        public E: string,
-        public OU: string) {}
+        public cn: string,
+        public o: string,
+        public l: string,
+        public st: string,
+        public c: string,
+        public e: string,
+        public ou: string) {}
 }

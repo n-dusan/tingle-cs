@@ -3,7 +3,6 @@ import com.tingle.tingle.domain.enums.UserType;
 
 import javax.persistence.*;
 import java.io.Serializable;
-import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -24,9 +23,6 @@ public class User implements Serializable {
     @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false)
     private UserType type;
-
-    @OneToMany(mappedBy = "requestedUser", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private List<CertificateSigningRequest> requests;
 
     public User() { }
 

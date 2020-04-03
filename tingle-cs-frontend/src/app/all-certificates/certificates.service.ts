@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core'
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Certificate } from '../shared/certificate.model';
 import { environment } from '../../environments/environment'
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Subject } from 'rxjs';
 
 @Injectable({
     providedIn: 'root'
@@ -14,6 +14,7 @@ export class CertificatesService {
     certificates: BehaviorSubject<Certificate[]> = new BehaviorSubject<Certificate[]>(null);
 
     selectedCertificate: BehaviorSubject<Certificate[]> = new BehaviorSubject<Certificate[]>(null);
+    displayDetails = new Subject<boolean>();
 
     constructor(private http: HttpClient) {}
 
@@ -29,6 +30,7 @@ export class CertificatesService {
         this.http.get<Certificate[]>(this.url+ '/get/serial-number='+serialNumber+'/role='+role).subscribe((response)=> {
             this.selectedCertificate.next(response)
         })
+        this.displayDetails.next(true);
         return this.selectedCertificate.asObservable();
     }
 }

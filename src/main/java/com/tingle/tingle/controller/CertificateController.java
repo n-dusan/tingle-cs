@@ -1,17 +1,17 @@
 package com.tingle.tingle.controller;
 
-import com.tingle.tingle.config.keystores.KeyStoreConfig;
 import com.tingle.tingle.domain.dto.CertificateDTO;
+import com.tingle.tingle.domain.dto.CertificateX500NameDTO;
+import com.tingle.tingle.domain.enums.Role;
 import com.tingle.tingle.service.CertificateService;
 import com.tingle.tingle.service.KeyStoreService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import javax.naming.InvalidNameException;
+import java.io.FileNotFoundException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
@@ -39,6 +39,7 @@ public class CertificateController {
     }
 
     /**
+     * Makes a new root.jks file and adds a self-signed certificate
      * @param: literally nothing
      * @return: list of all root certificates in the database, also prints out in the console
      * the created certificate in string format
@@ -65,8 +66,38 @@ public class CertificateController {
         return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    /**
+     * Endpoint for getting certificate issuer and subject data
+     *
+     * @param serialNumber: Serial number for a concrete certificate
+     * @param certificateRole: Role of the certificate
+     *
+     * CertificateX500NameDTO[0] - Issuer
+     * CertificateX500NameDTO[1] - Subject
+     * */
 
-//    @GetMapping(value="/get/serial-number={serialNumber}/role={certificateRole}")
-//    public ResponseEntity<>
+    @GetMapping(value="/get/serial-number={serialNumber}/role={certificateRole}")
+    public ResponseEntity<CertificateX500NameDTO[]> getCertificateX500IssuerAndSubject(@PathVariable("serialNumber") String serialNumber,
+                           @PathVariable("certificateRole") Role certificateRole) {
+        CertificateX500NameDTO[] certs = this.certificateService.getCertificateIssuerAndSubjectData(serialNumber, certificateRole);
+
+        if(certs == null) {
+            return new ResponseEntity<>(HttpStatus.CONFLICT);
+        }
+
+        return new ResponseEntity<CertificateX500NameDTO[]>(certs, HttpStatus.OK);
+    }
+
+
+    /**
+     * Endpoint for getting all cA subject data. Useful for filling out the issuer form.
+     * */
+
+    @GetMapping(value="/all-ca")
+    public ResponseEntity<List<CertificateX500NameDTO>> getAllCACertificateX500() throws FileNotFoundException, InvalidNameException {
+        List<CertificateX500NameDTO> certs = this.certificateService.getCertificateCASubjectData();
+
+        return new ResponseEntity<List<CertificateX500NameDTO>>(certs, HttpStatus.OK);
+    }
 
 }

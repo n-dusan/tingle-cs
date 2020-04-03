@@ -152,7 +152,7 @@ public class KeyStoreReader {
                 String alias = enumeration.nextElement();
                 Certificate certificate = ks.getCertificate(alias);
 
-                certList.add(certificate);
+                    certList.add(certificate);
                     System.out.println("alias name: " + alias);
                     System.out.println(certificate.toString());
                     System.out.println("=========== Private key =========== ");
