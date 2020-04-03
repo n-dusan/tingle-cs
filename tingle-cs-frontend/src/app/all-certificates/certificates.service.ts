@@ -27,7 +27,7 @@ export class CertificatesService {
 
     
     getCertificate(serialNumber: string, role: string) {
-        this.http.get<Certificate[]>(this.url+ '/get/serial-number='+serialNumber+'/role='+role).subscribe((response)=> {
+        this.http.get<Certificate[]>(this.url+ '/get/'+ serialNumber +'/' + role).subscribe((response)=> {
             this.selectedCertificate.next(response)
         })
         this.displayDetails.next(true);

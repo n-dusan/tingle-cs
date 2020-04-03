@@ -5,7 +5,7 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { FlexLayoutModule } from '@angular/flex-layout';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatButtonModule } from '@angular/material/button';
@@ -14,6 +14,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatCardModule } from '@angular/material/card';
+import { MatSelectModule } from '@angular/material/select';
+import { MatStepperModule } from '@angular/material/stepper';
 
 import { LoginComponent } from './auth/login/login.component';
 import { HeaderComponent } from './navigation/header/header.component';
@@ -25,6 +27,7 @@ import { AllCertificatesComponent } from './all-certificates/all-certificates.co
 import { AllCertificatesListComponent } from './all-certificates/all-certificates-list/all-certificates-list.component';
 import { AllCertificatesItemComponent } from './all-certificates/all-certificates-item/all-certificates-item.component';
 import { HttpClientModule } from '@angular/common/http';
+import { CertificateIssuingComponent } from './certificate-issuing/certificate-issuing.component';
 
 
 @NgModule({
@@ -38,7 +41,8 @@ import { HttpClientModule } from '@angular/common/http';
     HomePageComponent,
     AllCertificatesComponent,
     AllCertificatesListComponent,
-    AllCertificatesItemComponent
+    AllCertificatesItemComponent,
+    CertificateIssuingComponent
   ],
   imports: [
     BrowserModule,
@@ -46,6 +50,7 @@ import { HttpClientModule } from '@angular/common/http';
     BrowserAnimationsModule,
     FlexLayoutModule,
     FormsModule,
+    ReactiveFormsModule,
     MatSidenavModule,
     MatToolbarModule,
     MatIconModule,
@@ -53,7 +58,9 @@ import { HttpClientModule } from '@angular/common/http';
     MatFormFieldModule,
     MatInputModule,
     MatCardModule,
-    HttpClientModule
+    HttpClientModule,
+    MatSelectModule,
+    MatStepperModule
   ],
   providers: [],
   bootstrap: [AppComponent]

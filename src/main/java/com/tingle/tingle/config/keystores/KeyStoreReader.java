@@ -135,14 +135,15 @@ public class KeyStoreReader {
     }
 
     /**
-     * Added method of listing all certificates in keyStore file, and their private keys
+     * Method of listing all certificates in keyStore file, and their private keys
      */
-    public List<Certificate> readAllCertificates(String keystoreFile, char[] password) throws FileNotFoundException {
+    public List<Certificate> readAllCertificates(String keystoreFile, char[] password) {
 
-        File file = new File(keystoreFile);
-        InputStream is = new FileInputStream(file);
+        InputStream is = null;
         List<Certificate> certList = new ArrayList<Certificate>();
         try {
+            File file = new File(keystoreFile);
+            is = new FileInputStream(file);
 
             KeyStore ks = KeyStore.getInstance("JKS", "SUN");
             ks.load(is, password);
@@ -180,8 +181,10 @@ public class KeyStoreReader {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+
+            return certList;
         }
 
-        return certList;
+
     }
 }

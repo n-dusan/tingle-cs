@@ -44,7 +44,7 @@ public class CertificateController {
      * @return: list of all root certificates in the database, also prints out in the console
      * the created certificate in string format
      * */
-    @PutMapping(value="/new-root")
+    @PutMapping(value="/new/root")
     public ResponseEntity<List<CertificateDTO>> makeNewRoot() {
         try {
             keyStoreService.generateRootKeyStore();
@@ -76,7 +76,7 @@ public class CertificateController {
      * CertificateX500NameDTO[1] - Subject
      * */
 
-    @GetMapping(value="/get/serial-number={serialNumber}/role={certificateRole}")
+    @GetMapping(value="/get/{serialNumber}/{certificateRole}")
     public ResponseEntity<CertificateX500NameDTO[]> getCertificateX500IssuerAndSubject(@PathVariable("serialNumber") String serialNumber,
                            @PathVariable("certificateRole") Role certificateRole) {
         CertificateX500NameDTO[] certs = this.certificateService.getCertificateIssuerAndSubjectData(serialNumber, certificateRole);
@@ -90,10 +90,12 @@ public class CertificateController {
 
 
     /**
-     * Endpoint for getting all cA subject data. Useful for filling out the issuer form.
+     * Endpoint for fetching all Certificate Authority certificates.
+     * Important params in DTO: serialNumber and role.
+     * That combination can be used to get concrete certificate from /get/{serialNumber}/{certificateRole} endpoint.
      * */
 
-    @GetMapping(value="/all-ca")
+    @GetMapping(value="/all/ca")
     public ResponseEntity<List<CertificateX500NameDTO>> getAllCACertificateX500() throws FileNotFoundException, InvalidNameException {
         List<CertificateX500NameDTO> certs = this.certificateService.getCertificateCASubjectData();
 

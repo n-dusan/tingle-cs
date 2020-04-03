@@ -5,6 +5,7 @@ import { SignupComponent } from './auth/signup/signup.component';
 import { MakeRequestComponent } from './make-request/make-request.component';
 import { HomePageComponent } from './home-page/home-page.component';
 import { AllCertificatesComponent } from './all-certificates/all-certificates.component';
+import { CertificateIssuingComponent } from './certificate-issuing/certificate-issuing.component';
 
 
 const routes: Routes = [
@@ -13,7 +14,8 @@ const routes: Routes = [
   {path: 'signup', component: SignupComponent},
   {path: 'make-request', component: MakeRequestComponent},
   {path: 'home-page', component: HomePageComponent},
-  {path: 'all-certificates', component: AllCertificatesComponent}
+  {path: 'all-certificates', component: AllCertificatesComponent},
+  {path: 'issue', component: CertificateIssuingComponent}
 ];
 
 @NgModule({
