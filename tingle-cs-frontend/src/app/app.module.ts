@@ -10,9 +10,10 @@ import { FormsModule } from '@angular/forms';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatButtonModule } from '@angular/material/button';
 import { MatToolbarModule } from '@angular/material/toolbar';
-import {MatIconModule} from '@angular/material/icon';
-import {MatFormFieldModule} from '@angular/material/form-field';
-import {MatInputModule} from '@angular/material/input';
+import { MatIconModule } from '@angular/material/icon';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatCardModule } from '@angular/material/card';
 
 import { LoginComponent } from './auth/login/login.component';
 import { HeaderComponent } from './navigation/header/header.component';
@@ -45,7 +46,8 @@ import { AllCertificatesComponent } from './all-certificates/all-certificates.co
     MatIconModule,
     MatButtonModule,
     MatFormFieldModule,
-    MatInputModule
+    MatInputModule,
+    MatCardModule
   ],
   providers: [],
   bootstrap: [AppComponent]

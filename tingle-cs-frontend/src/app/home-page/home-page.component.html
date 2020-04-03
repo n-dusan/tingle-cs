@@ -1,23 +1,36 @@
-<div class="card-deck">
-    <div class="card">
-     
-      <div class="card-body">
-        <h1 class="card-title">All certificates</h1>
-        <h3 class="card-title">Here is all certificates you can see.</h3>
-      </div>
-      <div class="card-footer">
-        <button routerLink="../all-certificates" class="btn btn-info">Open</button>
-      </div>
-    </div>
-    <div class="card">
-    
-      <div class="card-body">
-        <h1 class="card-title">Generate certificate</h1>
-        <h3 class="card-title">Here you can generate a certificate.</h3>
-      </div>
-      <div class="card-footer">
-        <button class="btn btn-info">Open</button>
-      </div>
-    </div>
-   
+<section class="admin-home-banner">
+  <h1>Welcome to Tingle!</h1>
+</section>
+<section class="admin-home-content">
+  <div class="container" fxLayout fxLayoutAlign="center" fxLayoutGap="10px">
+    <mat-card class="matcard" fxFlex="30%">
+      <mat-card-header>
+        <mat-card-title>View all Certificates</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <p>
+          Here you can find a list of all existing certificates in the system.
+          Click View to see details.
+        </p>
+      </mat-card-content>
+      <mat-card-actions>
+        <button mat-raised-button color="accent" routerLink="../all-certificates">View</button>
+      </mat-card-actions>
+    </mat-card>
+    <mat-card class="matcard" fxFlex="30%">
+      <mat-card-header>
+        <mat-card-title>Issue a Certificate</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <p>
+          You can issue a new certificate by filling in all neccessary details.
+          Click View to proceed.
+        </p>
+      </mat-card-content>
+      <mat-card-actions>
+        <button mat-raised-button color="accent">View</button>
+      </mat-card-actions>
+    </mat-card>
   </div>
+
+</section>

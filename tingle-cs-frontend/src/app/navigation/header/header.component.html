@@ -1,4 +1,5 @@
 <mat-toolbar color="primary">
+    <!-- This is for responsiveness: TO DO -->
     <!-- <div>
       <button mat-icon-button (click)="sidenav.toggle()">
         <mat-icon>menu</mat-icon>
@@ -7,19 +8,19 @@
     <div>
         <a routerLink="/">TingleCS</a>
         &nbsp; &nbsp;
-        <a routerLink="/make-request">Make request</a>
+        <a routerLink="/make-request" style="visibility: hidden;">Make request</a>
         &nbsp;
-        <a routerLink="/">Requests</a>
+        <a routerLink="/" style="visibility: hidden;">Requests</a>
         &nbsp;
-        <a routerLink="/">Issued certificates</a>
+        <a routerLink="/" style="visibility: hidden;">Issued certificates</a>
 
     </div>
     <div fxFlex fxLayout fxLayoutAlign="flex-end"></div>
     <div>
         <ul fxLayout fxLayoutGap="10px" class="navigation-items">
-            <li><a routerLink="/">Certificate</a></li> &nbsp;
-            <li><a routerLink="/login">Login</a></li>
-            <li><a routerLink="/signup">Signup</a></li>
+          <!-- Login and Signup are hidden for KT1 -->
+            <li><a routerLink="/login" style="visibility: hidden;">Login</a></li>
+            <li><a routerLink="/signup" style="visibility: hidden;">Signup</a></li>
         </ul>
     </div>
 </mat-toolbar>
