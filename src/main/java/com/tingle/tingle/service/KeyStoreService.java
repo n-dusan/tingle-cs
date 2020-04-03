@@ -21,5 +21,12 @@ public class KeyStoreService {
         keyStoreWriter.write(alias, privateKey, KeyStoreConfig.ROOT_KEYSTORE_PASSWORD.toCharArray(), certificate);
         keyStoreWriter.saveKeyStore(KeyStoreConfig.ROOT_KEYSTORE_LOCATION, KeyStoreConfig.ROOT_KEYSTORE_PASSWORD.toCharArray());
     }
+    
+    public void saveCACertificate(X509Certificate certificate, String alias, PrivateKey privateKey) {
+        keyStoreWriter.loadKeyStore(KeyStoreConfig.INTERMEDIATE_KEYSTORE_LOCATION, KeyStoreConfig.INTERMEDIATE_KEYSTORE_PASSWORD.toCharArray());
+        //certificate password is the same as keystore password
+        keyStoreWriter.write(alias, privateKey, KeyStoreConfig.INTERMEDIATE_KEYSTORE_PASSWORD.toCharArray(), certificate);
+        keyStoreWriter.saveKeyStore(KeyStoreConfig.INTERMEDIATE_KEYSTORE_LOCATION, KeyStoreConfig.INTERMEDIATE_KEYSTORE_PASSWORD.toCharArray());
+    }
 
 }

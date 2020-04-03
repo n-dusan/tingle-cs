@@ -3,6 +3,7 @@ package com.tingle.tingle.service;
 import com.tingle.tingle.config.CertificateConfig;
 import com.tingle.tingle.config.keystores.KeyStoreConfig;
 import com.tingle.tingle.config.keystores.KeyStoreReader;
+import com.tingle.tingle.config.keystores.KeyStoreWriter;
 import com.tingle.tingle.domain.certificates.CertificateGenerator;
 import com.tingle.tingle.domain.certificates.IssuerData;
 import com.tingle.tingle.domain.certificates.SubjectData;
@@ -35,6 +36,9 @@ public class CertificateService {
 
     @Autowired
     private KeyStoreService keyStoreService;
+    
+    @Autowired 
+    private KeyStoreReader keyStoreReader;
 
 
     public List<CertificateDTO> findAll() {
@@ -55,7 +59,6 @@ public class CertificateService {
 
         return dtoList;
     }
-
 
     /**
      * Metoda generiše self-signed sertifikat i čuva u odgovarajući .jks fajl (root.jks)
@@ -87,6 +90,55 @@ public class CertificateService {
 
         //save the cert in the database -> to be used when ocsp implementation occurs
         this.certificateRepository.save(new Certificate(subject.getSerialNumber(),dto.getAlias(), true, Role.ROOT));
+    }
+    
+    public void generateCACertificate(CertificateX500NameDTO dto, String alias) throws NoSuchProviderException, CertificateException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, ParseException {
+    	
+    	SubjectData subject = generateSubjectData(dto);
+    	List<CertificateDTO> list = findAll();
+    	for(CertificateDTO c : list) {
+    		if(c.getAlias().equals(alias)) {
+    			if(c.getCertificateRole() == Role.ROOT) {
+    				
+    				IssuerData issuer = keyStoreReader.readIssuerFromStore(KeyStoreConfig.ROOT_KEYSTORE_LOCATION, c.getAlias(), KeyStoreConfig.ROOT_KEYSTORE_PASSWORD.toCharArray(), KeyStoreConfig.ROOT_KEYSTORE_PASSWORD.toCharArray());
+    				X509Certificate cert = certificateGenerator.generateCertificate(subject, issuer);
+    				System.out.println("\n===== Certificate issuer=====");
+    		        System.out.println(cert.getIssuerX500Principal().getName());
+    		        System.out.println("\n===== Certicate owner =====");
+    		        System.out.println(cert.getSubjectX500Principal().getName());
+    		        System.out.println("\n===== Certificate =====");
+    		        System.out.println("-------------------------------------------------------");
+    		        System.out.println(cert);
+    		        System.out.println("-------------------------------------------------------");
+
+    		        //save the cert in the keystore
+    		        keyStoreService.saveCACertificate(cert, dto.getAlias(), issuer.getPrivateKey());
+
+    		        //save the cert in the database -> to be used when ocsp implementation occurs
+    		        this.certificateRepository.save(new Certificate(subject.getSerialNumber(),dto.getAlias(), true, Role.INTERMEDIATE));
+    			}else {
+    				//kako cemo u ovom slucaju promeniti alias za novi sertifikat?
+    				
+    				IssuerData issuer = keyStoreReader.readIssuerFromStore(KeyStoreConfig.INTERMEDIATE_KEYSTORE_LOCATION, c.getAlias(), KeyStoreConfig.INTERMEDIATE_KEYSTORE_PASSWORD.toCharArray(), KeyStoreConfig.INTERMEDIATE_KEYSTORE_PASSWORD.toCharArray());
+    				X509Certificate cert = certificateGenerator.generateCertificate(subject, issuer);
+    				System.out.println("\n===== Certificate issuer=====");
+    		        System.out.println(cert.getIssuerX500Principal().getName());
+    		        System.out.println("\n===== Certicate owner =====");
+    		        System.out.println(cert.getSubjectX500Principal().getName());
+    		        System.out.println("\n===== Certificate =====");
+    		        System.out.println("-------------------------------------------------------");
+    		        System.out.println(cert);
+    		        System.out.println("-------------------------------------------------------");
+
+    		        //save the cert in the keystore
+    		        keyStoreService.saveCACertificate(cert, dto.getAlias(), issuer.getPrivateKey());
+
+    		        //save the cert in the database -> to be used when ocsp implementation occurs
+    		        this.certificateRepository.save(new Certificate(subject.getSerialNumber(),dto.getAlias(), true, Role.INTERMEDIATE));
+    			}
+    		}
+    	}
+    	
     }
 
     
@@ -162,6 +214,19 @@ public class CertificateService {
         return new IssuerData(privateKey, builder.build());
     }
 
+    private KeyPair getKeyPair(){
+        try {
+            KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
+            SecureRandom random = SecureRandom.getInstance("SHA1PRNG", "SUN");
+            keyGen.initialize(2048, random);
+            return keyGen.generateKeyPair();
 
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (NoSuchProviderException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
 }

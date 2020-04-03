@@ -68,5 +68,27 @@ public class CertificateController {
         return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
     }
     
+    @PutMapping(value = "/new-ca/{alias}")
+    public ResponseEntity<List<CertificateDTO>> makeNewCA(@PathVariable("alias") String alias) {
+        try {
+            config.generateCAKeyStore(alias);
+            return new ResponseEntity<List<CertificateDTO>>(certificateService.findAll(), HttpStatus.OK);
+        } catch (CertificateException e) {
+            e.printStackTrace();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (SignatureException e) {
+            e.printStackTrace();
+        } catch (NoSuchProviderException e) {
+            e.printStackTrace();
+        } catch (InvalidKeyException e) {
+            e.printStackTrace();
+        }
+
+        return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+    
     
 }

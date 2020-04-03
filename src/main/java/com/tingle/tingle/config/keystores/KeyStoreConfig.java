@@ -59,5 +59,25 @@ public class KeyStoreConfig {
         keyStoreWriter.saveKeyStore(ROOT_KEYSTORE_LOCATION, ROOT_KEYSTORE_PASSWORD.toCharArray());
     }
     
+    public void generateCAKeyStore(String alias) throws CertificateException, ParseException, NoSuchAlgorithmException, SignatureException, NoSuchProviderException, InvalidKeyException {
+        keyStoreWriter.loadKeyStore(null, KeyStoreConfig.INTERMEDIATE_KEYSTORE_PASSWORD.toCharArray());
+
+        CertificateX500NameDTO dto = new CertificateX500NameDTO();
+        dto.setAlias("alias1");
+        dto.setC(CertificateConfig.INTERMEDIATE_C);
+        dto.setCN(CertificateConfig.INTERMEDIATE_CN);
+        dto.setE(CertificateConfig.INTERMEDIATE_MAIL);
+        dto.setL(CertificateConfig.INTERMEDIATE_L);
+        dto.setOU(CertificateConfig.INTERMEDIATE_OU);
+        dto.setO(CertificateConfig.INTERMEDIATE_O);
+        dto.setST(CertificateConfig.INTERMEDIATE_ST);
+        dto.setRole(Role.INTERMEDIATE);
+
+        certificateService.generateCACertificate(dto,alias);
+
+        //sacuvaj stanje keystora
+        keyStoreWriter.saveKeyStore(INTERMEDIATE_KEYSTORE_LOCATION, INTERMEDIATE_KEYSTORE_PASSWORD.toCharArray());
+    }
+    
    
 }
