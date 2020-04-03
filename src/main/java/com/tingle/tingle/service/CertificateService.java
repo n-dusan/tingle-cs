@@ -111,10 +111,8 @@ public class CertificateService {
     		        System.out.println(cert);
     		        System.out.println("-------------------------------------------------------");
 
-    		        //save the cert in the keystore
+    		        
     		        keyStoreService.saveCACertificate(cert, dto.getAlias(), issuer.getPrivateKey());
-
-    		        //save the cert in the database -> to be used when ocsp implementation occurs
     		        this.certificateRepository.save(new Certificate(subject.getSerialNumber(),dto.getAlias(), true, Role.INTERMEDIATE));
     			}else {
     				//kako cemo u ovom slucaju promeniti alias za novi sertifikat?
@@ -130,10 +128,7 @@ public class CertificateService {
     		        System.out.println(cert);
     		        System.out.println("-------------------------------------------------------");
 
-    		        //save the cert in the keystore
     		        keyStoreService.saveCACertificate(cert, dto.getAlias(), issuer.getPrivateKey());
-
-    		        //save the cert in the database -> to be used when ocsp implementation occurs
     		        this.certificateRepository.save(new Certificate(subject.getSerialNumber(),dto.getAlias(), true, Role.INTERMEDIATE));
     			}
     		}
