@@ -58,5 +58,6 @@ public class KeyStoreConfig {
         //sacuvaj stanje keystora
         keyStoreWriter.saveKeyStore(ROOT_KEYSTORE_LOCATION, ROOT_KEYSTORE_PASSWORD.toCharArray());
     }
-
+    
+   
 }

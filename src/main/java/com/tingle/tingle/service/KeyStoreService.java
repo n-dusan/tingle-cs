@@ -22,5 +22,4 @@ public class KeyStoreService {
         keyStoreWriter.saveKeyStore(KeyStoreConfig.ROOT_KEYSTORE_LOCATION, KeyStoreConfig.ROOT_KEYSTORE_PASSWORD.toCharArray());
     }
 
-
 }

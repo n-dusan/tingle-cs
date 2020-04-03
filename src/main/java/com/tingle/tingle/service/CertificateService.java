@@ -1,6 +1,8 @@
 package com.tingle.tingle.service;
 
 import com.tingle.tingle.config.CertificateConfig;
+import com.tingle.tingle.config.keystores.KeyStoreConfig;
+import com.tingle.tingle.config.keystores.KeyStoreReader;
 import com.tingle.tingle.domain.certificates.CertificateGenerator;
 import com.tingle.tingle.domain.certificates.IssuerData;
 import com.tingle.tingle.domain.certificates.SubjectData;
@@ -10,10 +12,10 @@ import com.tingle.tingle.domain.enums.Role;
 import com.tingle.tingle.repository.CertificateRepository;
 import org.bouncycastle.asn1.x500.X500NameBuilder;
 import org.bouncycastle.asn1.x500.style.BCStyle;
+import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.tingle.tingle.domain.Certificate;
-
 import java.math.BigInteger;
 import java.security.*;
 import java.security.cert.CertificateException;
@@ -87,7 +89,7 @@ public class CertificateService {
         this.certificateRepository.save(new Certificate(subject.getSerialNumber(),dto.getAlias(), true, Role.ROOT));
     }
 
-
+    
     private SubjectData generateSubjectData(CertificateX500NameDTO dto) throws ParseException {
 
         //generate keyPair with longer key size

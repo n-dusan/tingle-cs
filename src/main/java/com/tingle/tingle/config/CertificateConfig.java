@@ -18,5 +18,8 @@ public class CertificateConfig {
     public static final String ROOT_ST = "Vojvodina";
     public static final String ROOT_C = "Serbia";
     public static final String ROOT_MAIL = "tingle@tingle.org";
+    
+   
+    
 
 }
