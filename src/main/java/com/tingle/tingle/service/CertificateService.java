@@ -101,7 +101,7 @@ public class CertificateService {
     /**
      * Ana, zanimacete ova metoda koja vraca listu svih CA sertifikata, koji ti mogu upasti u onaj tvoj select.
      * Trebalo bi da sadrzi sve neophodne podatke o mogucim issuerima.
-     * Napravi end-point na kontroleru pa ga uvezi sa svojim frontom.
+     *
      * TODO: validirati lanac sertifikata, da bi izdavanje novog sertifikata imalo smisla
      * */
 
@@ -190,9 +190,11 @@ public class CertificateService {
     		        
     		        keyStoreService.saveCertificate(cert, dto.getAlias(), issuer.getPrivateKey(), Role.INTERMEDIATE);
     		        this.certificateRepository.save(new Certificate(subject.getSerialNumber(), dto.getAlias(), true, Role.INTERMEDIATE));
-    			}else {
+    			} else {
     				//kako cemo u ovom slucaju promeniti alias za novi sertifikat?
-    				
+    				//pseudo kod za olju:
+                    //dobices serijski broj sertifikata issuera sa front-enda, onda pozoves getCertificateIssuerAndSubjectData i
+                    //odatle izvuces subjekta tog sertifikata koji ce biti issuer za ovaj sertifikat koji sad pravis
     				IssuerData issuer = keyStoreReader.readIssuerFromStore(KeyStoreConfig.INTERMEDIATE_KEYSTORE_LOCATION,
                             c.getAlias(),
                             KeyStoreConfig.INTERMEDIATE_KEYSTORE_PASSWORD.toCharArray(),

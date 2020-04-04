@@ -79,7 +79,6 @@ public class CertificateController {
      * CertificateX500NameDTO[0] - Issuer
      * CertificateX500NameDTO[1] - Subject
      * */
-
     @GetMapping(value="/get/{serialNumber}/{certificateRole}")
     public ResponseEntity<CertificateX500NameDTO[]> getCertificateX500IssuerAndSubject(@PathVariable("serialNumber") String serialNumber,
                            @PathVariable("certificateRole") Role certificateRole) {
@@ -98,7 +97,6 @@ public class CertificateController {
      * Important params in DTO: serialNumber and role.
      * That combination can be used to get concrete certificate from /get/{serialNumber}/{certificateRole} endpoint.
      * */
-
     @GetMapping(value="/all/ca")
     public ResponseEntity<List<CertificateX500NameDTO>> getAllCACertificateX500() throws FileNotFoundException, InvalidNameException {
         List<CertificateX500NameDTO> certs = this.certificateService.getCertificateCASubjectData();
