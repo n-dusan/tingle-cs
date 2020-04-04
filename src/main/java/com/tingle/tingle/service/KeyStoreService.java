@@ -1,13 +1,14 @@
 package com.tingle.tingle.service;
 
 import com.tingle.tingle.config.CertificateConfig;
-import com.tingle.tingle.config.keystores.KeyStoreConfig;
-import com.tingle.tingle.config.keystores.KeyStoreReader;
-import com.tingle.tingle.config.keystores.KeyStoreWriter;
+import com.tingle.tingle.config.KeyStoreConfig;
+import com.tingle.tingle.util.keystores.KeyStoreReader;
+import com.tingle.tingle.util.keystores.KeyStoreWriter;
 import com.tingle.tingle.domain.dto.CertificateX500NameDTO;
 import com.tingle.tingle.domain.enums.Role;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import sun.security.x509.X500Name;
 
 import java.io.FileNotFoundException;
 import java.security.*;
@@ -60,13 +61,6 @@ public class KeyStoreService {
         if(certificateRole == Role.ROOT) {
             List<Certificate> rootCerts = keyStoreReader.readAllCertificates(
                     KeyStoreConfig.ROOT_KEYSTORE_LOCATION, KeyStoreConfig.ROOT_KEYSTORE_PASSWORD.toCharArray());
-             /*
-                Java 8 magic to cast all elements in list to another type
-                *  List<TestB> variable = collectionOfListA
-            .stream()
-            .map(e -> (TestB) e)
-            .collect(Collectors.toList());
-          */
             return rootCerts.stream().map(e -> (X509Certificate) e).collect(Collectors.toList());
         }
         else if(certificateRole == Role.INTERMEDIATE) {
@@ -90,7 +84,7 @@ public class KeyStoreService {
 
         //generate root certificate, simulacija podataka sa front-enda
         CertificateX500NameDTO dto = new CertificateX500NameDTO();
-        dto.setAlias("alias");
+        dto.setSerialNumber("123456");
         dto.setC(CertificateConfig.ROOT_C);
         dto.setCN(CertificateConfig.ROOT_CN);
         dto.setE(CertificateConfig.ROOT_MAIL);
@@ -106,22 +100,24 @@ public class KeyStoreService {
         keyStoreWriter.saveKeyStore(KeyStoreConfig.ROOT_KEYSTORE_LOCATION, KeyStoreConfig.ROOT_KEYSTORE_PASSWORD.toCharArray());
     }
 
-    public void generateCAKeyStore(String alias) throws CertificateException, ParseException, NoSuchAlgorithmException, SignatureException, NoSuchProviderException, InvalidKeyException {
+    public void generateCAKeyStore(CertificateX500NameDTO dto) {
         keyStoreWriter.loadKeyStore(null, KeyStoreConfig.INTERMEDIATE_KEYSTORE_PASSWORD.toCharArray());
 
-        CertificateX500NameDTO dto = new CertificateX500NameDTO();
-        dto.setAlias("alias1");
-        dto.setC(CertificateConfig.INTERMEDIATE_C);
-        dto.setCN(CertificateConfig.INTERMEDIATE_CN);
-        dto.setE(CertificateConfig.INTERMEDIATE_MAIL);
-        dto.setL(CertificateConfig.INTERMEDIATE_L);
-        dto.setOU(CertificateConfig.INTERMEDIATE_OU);
-        dto.setO(CertificateConfig.INTERMEDIATE_O);
-        dto.setST(CertificateConfig.INTERMEDIATE_ST);
-        dto.setCertificateRole(Role.INTERMEDIATE);
+        dto.setC(dto.getC());
+        dto.setCN(dto.getCN());
+        dto.setE(dto.getE());
+        dto.setL(dto.getL());
+        dto.setOU(dto.getOU());
+        dto.setO(dto.getO());
+        dto.setST(dto.getST());
+        dto.setCertificateRole(dto.getCertificateRole());
+        dto.setSerialNumber(dto.getSerialNumber());
 
-        certificateService.generateCACertificate(dto,alias);
-
+        try {
+            certificateService.generateCACertificate(dto);
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
         //sacuvaj stanje keystora
         keyStoreWriter.saveKeyStore(KeyStoreConfig.INTERMEDIATE_KEYSTORE_LOCATION, KeyStoreConfig.INTERMEDIATE_KEYSTORE_PASSWORD.toCharArray());
     }

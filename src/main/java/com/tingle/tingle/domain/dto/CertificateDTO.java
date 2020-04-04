@@ -9,19 +9,16 @@ public class CertificateDTO {
 
     private Long id;
     private String serialNumber;
-    private String alias;
     private boolean active;
-
 
     private Role certificateRole;
 
 
     public CertificateDTO() {}
 
-    public CertificateDTO(Long id, String serialNumber, String alias, boolean active, Role role) {
+    public CertificateDTO(Long id, String serialNumber, boolean active, Role role) {
         this.id = id;
         this.serialNumber = serialNumber;
-        this.alias = alias;
         this.active = active;
         this.certificateRole = role;
     }
@@ -51,13 +48,6 @@ public class CertificateDTO {
         this.serialNumber = serialNumber;
     }
 
-    public String getAlias() {
-        return alias;
-    }
-
-    public void setAlias(String alias) {
-        this.alias = alias;
-    }
 
     public boolean isActive() {
         return active;

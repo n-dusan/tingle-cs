@@ -1,6 +1,4 @@
-package com.tingle.tingle.config.keystores;
-
-import org.springframework.context.annotation.Configuration;
+package com.tingle.tingle.util.keystores;
 import org.springframework.stereotype.Component;
 
 import java.io.FileInputStream;
@@ -63,15 +61,15 @@ public class KeyStoreWriter {
 
     public void write(String alias, PrivateKey privateKey, char[] password, java.security.cert.Certificate certificate) {
         try {
-            Certificate[] chain = keyStore.getCertificateChain(alias);
+//            Certificate[] chain = keyStore.getCertificateChain(alias);
+//
+//            Certificate[] newChain = new Certificate[chain.length+1];
+//            newChain[0] = certificate;
+//            for(int i = 0; i < chain.length; i++) {
+//                newChain[i+1] = chain[i];
+//            }
 
-            Certificate[] newChain = new Certificate[chain.length+1];
-            newChain[0] = certificate;
-            for(int i = 0; i < chain.length; i++) {
-                newChain[i+1] = chain[i];
-            }
-
-            keyStore.setKeyEntry(alias, privateKey, password, newChain);
+            keyStore.setKeyEntry(alias, privateKey, password, new Certificate[] {certificate});
         } catch (KeyStoreException e) {
             e.printStackTrace();
         }

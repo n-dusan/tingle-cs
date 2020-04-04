@@ -17,9 +17,6 @@ public class Certificate implements Serializable {
     @Column(name="serialNumber", unique = true)
     private String serialNumber;
 
-    @Column(name="alias")
-    private String alias;
-
     @Column(nullable = false)
     private boolean active;
 
@@ -29,9 +26,8 @@ public class Certificate implements Serializable {
 
     public Certificate() {}
 
-    public Certificate(String serialNumber, String alias, boolean active, Role role) {
+    public Certificate(String serialNumber, boolean active, Role role) {
         this.serialNumber = serialNumber;
-        this.alias = alias;
         this.active = active;
         this.certificateRole = role;
     }
@@ -60,13 +56,6 @@ public class Certificate implements Serializable {
         this.serialNumber = serialNumber;
     }
 
-    public String getAlias() {
-        return alias;
-    }
-
-    public void setAlias(String alias) {
-        this.alias = alias;
-    }
 
     public boolean isActive() {
         return active;
