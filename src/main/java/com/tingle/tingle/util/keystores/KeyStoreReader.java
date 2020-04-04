@@ -48,23 +48,40 @@ public class KeyStoreReader {
             Certificate cert = keyStore.getCertificate(alias);
             //Iscitava se privatni kljuc vezan za javni kljuc koji se nalazi na sertifikatu sa datim aliasom
             PrivateKey privKey = (PrivateKey) keyStore.getKey(alias, keyPass);
+            X500Name issuerName = null;
+            try {
+                 issuerName = new JcaX509CertificateHolder((X509Certificate) cert).getSubject();
+            } catch(Exception e) {
 
-            X500Name issuerName = new JcaX509CertificateHolder((X509Certificate) cert).getSubject();
+                System.out.println("a odje???");
+                return null;
+
+            }
+
             return new IssuerData(privKey, issuerName);
         } catch (KeyStoreException e) {
             e.printStackTrace();
+            return null;
         } catch (FileNotFoundException e) {
             e.printStackTrace();
+            return null;
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
+            return null;
         } catch (CertificateException e) {
             e.printStackTrace();
+            return null;
         } catch (UnrecoverableKeyException e) {
             e.printStackTrace();
+            return null;
         } catch (IOException e) {
             e.printStackTrace();
+            return null;
+        } catch(NullPointerException e) {
+            e.printStackTrace();
+            return null;
         }
-        return null;
+
     }
 
     /**

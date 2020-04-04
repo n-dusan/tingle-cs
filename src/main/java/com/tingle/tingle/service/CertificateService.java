@@ -220,14 +220,18 @@ public class CertificateService {
             if(dto.getSerialNumber().equalsIgnoreCase(serialNumber)) {
 
                 //prvo ga citaj iz roota
-                IssuerData issuer = keyStoreReader.readIssuerFromStore(KeyStoreConfig.ROOT_KEYSTORE_LOCATION,
-                        serialNumber, KeyStoreConfig.ROOT_KEYSTORE_PASSWORD.toCharArray(),
+                System.out.println("=====KOD ROOTA sam");
+                IssuerData issuer;
+
+                issuer = keyStoreReader.readIssuerFromStore(KeyStoreConfig.ROOT_KEYSTORE_LOCATION,
+                            serialNumber, KeyStoreConfig.ROOT_KEYSTORE_PASSWORD.toCharArray(),
                             KeyStoreConfig.ROOT_KEYSTORE_PASSWORD.toCharArray());
-                //ako ga nema u rootu, onda je u cA
                 if(issuer == null) {
+                    System.out.println("======Hesasn ku yo");
                     issuer = keyStoreReader.readIssuerFromStore(KeyStoreConfig.INTERMEDIATE_KEYSTORE_LOCATION,
-                            serialNumber, KeyStoreConfig.INTERMEDIATE_KEYSTORE_LOCATION.toCharArray(),
+                            serialNumber, KeyStoreConfig.INTERMEDIATE_KEYSTORE_PASSWORD.toCharArray(),
                             KeyStoreConfig.INTERMEDIATE_KEYSTORE_PASSWORD.toCharArray());
+                    System.out.println("======a sad JE OVDE?" + issuer.getX500name().getRDNs().length);
                 }
 
                 SubjectData subject = generateSubjectData(dto);
@@ -240,10 +244,6 @@ public class CertificateService {
                 System.out.println(cert.getIssuerX500Principal().getName());
                 System.out.println("\n===== Certicate owner =====");
                 System.out.println(cert.getSubjectX500Principal().getName());
-                System.out.println("\n===== Certificate =====");
-                System.out.println("-------------------------------------------------------");
-                System.out.println(cert);
-                System.out.println("-------------------------------------------------------");
 
                 keyStoreService.saveCertificate(cert, subject.getSerialNumber(), subject.getPrivateKey(), Role.INTERMEDIATE);
 
@@ -253,62 +253,6 @@ public class CertificateService {
             }
         }
     }
-    
-//    public void generateCACertificate(CertificateX500NameDTO dto, String alias) throws ParseException {
-//
-//    	SubjectData subject = generateSubjectData(dto);
-//    	List<CertificateDTO> list = findAll();
-//    	for(CertificateDTO c : list) {
-//    		if(c.getAlias().equals(alias)) {
-//    			if(c.getCertificateRole() == Role.ROOT) {
-//
-//    				IssuerData issuer = keyStoreReader.readIssuerFromStore(KeyStoreConfig.ROOT_KEYSTORE_LOCATION,
-//                            c.getAlias(), KeyStoreConfig.ROOT_KEYSTORE_PASSWORD.toCharArray(),
-//                            KeyStoreConfig.ROOT_KEYSTORE_PASSWORD.toCharArray());
-//
-//    				X509Certificate cert = certificateGenerator.generateCertificate(subject, issuer, true);
-//    				System.out.println("\n===== Certificate issuer=====");
-//    		        System.out.println(cert.getIssuerX500Principal().getName());
-//    		        System.out.println("\n===== Certicate owner =====");
-//    		        System.out.println(cert.getSubjectX500Principal().getName());
-//    		        System.out.println("\n===== Certificate =====");
-//    		        System.out.println("-------------------------------------------------------");
-//    		        System.out.println(cert);
-//    		        System.out.println("-------------------------------------------------------");
-//
-//
-//    		        keyStoreService.saveCertificate(cert, dto.getAlias(), subject.getPrivateKey(), Role.INTERMEDIATE);
-//    		        this.certificateRepository.save(new Certificate(subject.getSerialNumber(), dto.getAlias(), true, Role.INTERMEDIATE));
-//    			} else {
-//    				//kako cemo u ovom slucaju promeniti alias za novi sertifikat?
-//    				//pseudo kod za olju:
-//                    //dobices serijski broj sertifikata issuera sa front-enda, onda pozoves getCertificateIssuerAndSubjectData i
-//                    //odatle izvuces subjekta tog sertifikata koji ce biti issuer za ovaj sertifikat koji sad pravis
-//                    //edit: malo jasniji koraci:
-//                    // - pozoves getCertificateIssuerAndSubjectData nad serijskim brojem issuera, dobijes issuera i subjekta
-//                    //  - pozoves generateIssuerData i prosledis dto subjekta u njega, a privatan kljuc
-//    				IssuerData issuer = keyStoreReader.readIssuerFromStore(KeyStoreConfig.INTERMEDIATE_KEYSTORE_LOCATION,
-//                            c.getAlias(),
-//                            KeyStoreConfig.INTERMEDIATE_KEYSTORE_PASSWORD.toCharArray(),
-//                            KeyStoreConfig.INTERMEDIATE_KEYSTORE_PASSWORD.toCharArray());
-//
-//    				X509Certificate cert = certificateGenerator.generateCertificate(subject, issuer, true);
-//    				System.out.println("\n===== Certificate issuer=====");
-//    		        System.out.println(cert.getIssuerX500Principal().getName());
-//    		        System.out.println("\n===== Certicate owner =====");
-//    		        System.out.println(cert.getSubjectX500Principal().getName());
-//    		        System.out.println("\n===== Certificate =====");
-//    		        System.out.println("-------------------------------------------------------");
-//    		        System.out.println(cert);
-//    		        System.out.println("-------------------------------------------------------");
-//
-//    		        keyStoreService.saveCertificate(cert, dto.getAlias(), issuer.getPrivateKey(), Role.INTERMEDIATE);
-//    		        this.certificateRepository.save(new Certificate(subject.getSerialNumber(),dto.getAlias(), true, Role.INTERMEDIATE));
-//    			}
-//    		}
-//    	}
-//
-//    }
 
     
     private SubjectData generateSubjectData(CertificateX500NameDTO dto) throws ParseException {
@@ -434,7 +378,8 @@ public class CertificateService {
         return null;
     }
 
-    /**
+    /** Creates a certificate chain
+     *
      * @param startingPoint the X509Certificate for which we want to find
      *                      ancestors
      *
@@ -513,30 +458,5 @@ public class CertificateService {
         }
     }
 
-
-//    public void validate(X509Certificate[] chain) throws CertificateException {
-//        byte[] chain = chain
-//        CertificateFactory cf = CertificateFactory.getInstance("X.509");
-//        List<Certificate> certx = new ArrayList<>(chain.length);
-//        for (byte[] c : chain)
-//            certx.add(cf.generateCertificate(new ByteArrayInputStream(c)));
-//        CertPath path = cf.generateCertPath(certx);
-//        CertPathValidator validator = CertPathValidator.getInstance("PKIX");
-//        KeyStore keystore = KeyStore.getInstance("JKS");
-//        try (InputStream is = Files.newInputStream(Paths.get("cacerts.jks"))) {
-//            keystore.load(is, "changeit".toCharArray());
-//        }
-//        Collection<? extends CRL> crls;
-//        try (InputStream is = Files.newInputStream(Paths.get("crls.p7c"))) {
-//            crls = cf.generateCRLs(is);
-//        }
-//        PKIXParameters params = new PKIXParameters(keystore);
-//        CertStore store = CertStore.getInstance("Collection", new CollectionCertStoreParameters(crls));
-//        /* If necessary, specify the certificate policy or other requirements
-//         * with the appropriate params.setXXX() method. */
-//        params.addCertStore(store);
-//        /* Validate will throw an exception on invalid chains. */
-//        PKIXCertPathValidatorResult r = (PKIXCertPathValidatorResult) validator.validate(path, params);
-//    }
 
 }
