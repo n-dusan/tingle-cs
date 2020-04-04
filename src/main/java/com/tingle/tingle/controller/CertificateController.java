@@ -20,6 +20,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.SignatureException;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.text.ParseException;
 import java.util.List;
@@ -99,9 +100,14 @@ public class CertificateController {
      * */
     @GetMapping(value="/all/ca")
     public ResponseEntity<List<CertificateX500NameDTO>> getAllCACertificateX500() throws FileNotFoundException, InvalidNameException {
-        List<CertificateX500NameDTO> certs = this.certificateService.getCertificateCASubjectData();
-
-        return new ResponseEntity<List<CertificateX500NameDTO>>(certs, HttpStatus.OK);
+        List<CertificateX500NameDTO> certs = null;
+        try {
+            certs = this.certificateService.getCertificateCASubjectData();
+            return new ResponseEntity<List<CertificateX500NameDTO>>(certs, HttpStatus.OK);
+        } catch (CertificateEncodingException e) {
+            e.printStackTrace();
+        }
+        return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     

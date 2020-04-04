@@ -3,6 +3,7 @@ package com.tingle.tingle.config.keystores;
 import com.tingle.tingle.domain.certificates.IssuerData;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder;
+import org.bouncycastle.jcajce.provider.asymmetric.X509;
 import org.bouncycastle.util.encoders.Base64;
 import org.springframework.stereotype.Component;
 
@@ -11,10 +12,8 @@ import java.security.*;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Enumeration;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 public class KeyStoreReader {
@@ -151,14 +150,26 @@ public class KeyStoreReader {
             Enumeration<String> enumeration = ks.aliases();
             while(enumeration.hasMoreElements()) {
                 String alias = enumeration.nextElement();
-                Certificate certificate = ks.getCertificate(alias);
 
-                    certList.add(certificate);
+                //get certificate chain
+                Certificate[] certs = ks.getCertificateChain(alias);
+
+                //convert it to a list
+                List<Certificate> toList = Arrays.stream(certs).collect(Collectors.toList());
+                certList.addAll(toList);
+                //Certificate certificate = ks.getCertificate(alias);
+
+                    //certList.add(certificate);
+                for (Certificate certificate : toList) {
+
+                    X509Certificate certificate1 = (X509Certificate) certificate;
                     System.out.println("alias name: " + alias);
-                    System.out.println(certificate.toString());
+                    System.out.println(certificate1);
                     System.out.println("=========== Private key =========== ");
                     PrivateKey pk = readPrivateKey(keystoreFile, new String(password),alias, new String(password));
                     System.out.println("Private key: " + Arrays.toString(Base64.encode(pk.getEncoded())));
+
+                }
 
             }
 

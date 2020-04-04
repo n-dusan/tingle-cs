@@ -17,7 +17,7 @@ public class Certificate implements Serializable {
     @Column(name="serialNumber", unique = true)
     private String serialNumber;
 
-    @Column(name="alias", unique = true)
+    @Column(name="alias")
     private String alias;
 
     @Column(nullable = false)
