@@ -2,7 +2,8 @@ import { Injectable } from '@angular/core'
 import { HttpClient } from '@angular/common/http';
 import { Certificate } from '../shared/certificate.model';
 import { environment } from '../../environments/environment'
-import { BehaviorSubject, Subject } from 'rxjs';
+import { BehaviorSubject, Subject, Observable } from 'rxjs';
+import { CertificateX500Name } from '../shared/certificateX500Name.model';
 
 @Injectable({
     providedIn: 'root'
@@ -32,5 +33,9 @@ export class CertificatesService {
         })
         this.displayDetails.next(true);
         return this.selectedCertificate.asObservable();
+    }
+
+    getOnlyCA(): Observable<Certificate[]> {
+        return this.http.get<Certificate[]>(this.url + '/all/ca');
     }
 }
