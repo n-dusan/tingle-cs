@@ -1,20 +1,5 @@
 package com.tingle.tingle.controller;
 
-import com.tingle.tingle.domain.dto.CertificateDTO;
-import com.tingle.tingle.domain.dto.CertificateX500NameDTO;
-import com.tingle.tingle.domain.enums.Role;
-import com.tingle.tingle.service.CertificateService;
-import com.tingle.tingle.service.KeyStoreService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import javax.naming.InvalidNameException;
 import java.io.FileNotFoundException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -23,6 +8,26 @@ import java.security.SignatureException;
 import java.security.cert.CertificateException;
 import java.text.ParseException;
 import java.util.List;
+
+import javax.naming.InvalidNameException;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.tingle.tingle.domain.dto.CertificateDTO;
+import com.tingle.tingle.domain.dto.CertificateX500NameDTO;
+import com.tingle.tingle.domain.dto.EndEntityDTO;
+import com.tingle.tingle.domain.enums.Role;
+import com.tingle.tingle.service.CertificateService;
+import com.tingle.tingle.service.KeyStoreService;
 
 @RestController
 @RequestMapping(value="api/certificate")
@@ -129,4 +134,32 @@ public class CertificateController {
         return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    /**
+     * Makes a new end-entity.jks file and adds a end-entity certificate
+     * @param: literally nothing
+     * @return: list of all certificates in the database, also prints out in the console
+     * the created certificate in string format
+     * */
+    @PostMapping(value="/new/end-entity", consumes="application/json")
+    public ResponseEntity<List<CertificateDTO>> makeNewEndEntity(@RequestBody EndEntityDTO endEntityCertificate) {
+        try {
+            keyStoreService.generateEndEntityKeyStore(endEntityCertificate);
+            return new ResponseEntity<List<CertificateDTO>>(certificateService.findAll(), HttpStatus.OK);
+        } catch (CertificateException e) {
+            e.printStackTrace();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (SignatureException e) {
+            e.printStackTrace();
+        } catch (NoSuchProviderException e) {
+            e.printStackTrace();
+        } catch (InvalidKeyException e) {
+            e.printStackTrace();
+        }
+
+        return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+    
 }

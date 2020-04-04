@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Certificate } from '../shared/certificate.model';
 import { environment } from '../../environments/environment'
 import { BehaviorSubject, Subject, Observable } from 'rxjs';
-import { CertificateX500Name } from '../shared/certificateX500Name.model';
+import { EndEntityCertificate } from '../shared/end-entity-cert.model';
 
 @Injectable({
     providedIn: 'root'
@@ -25,7 +25,6 @@ export class CertificatesService {
         });
         return this.certificates.asObservable();
     }
-
     
     getCertificate(serialNumber: string, role: string) {
         this.http.get<Certificate[]>(this.url+ '/get/'+ serialNumber +'/' + role).subscribe((response)=> {
@@ -37,5 +36,9 @@ export class CertificatesService {
 
     getOnlyCA(): Observable<Certificate[]> {
         return this.http.get<Certificate[]>(this.url + '/all/ca');
+    }
+
+    makeNewEndEntity(cert : EndEntityCertificate) : Observable<Certificate>{
+        return this.http.post<Certificate>(this.url + '/new/end-entity', cert);
     }
 }

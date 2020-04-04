@@ -341,5 +341,42 @@ public class CertificateService {
         return issuerAndSubjectDTO;
     }
 
+    public void generateEndEntityCertificate(CertificateX500NameDTO subjectDTO, CertificateX500NameDTO issuerDTO) throws Exception {
+    	SubjectData subject = generateSubjectData(subjectDTO);
+    	
+    	// Issuer private key?
+    	String keyStorePassword = "";
+    	IssuerData issuer;
+    	if(issuerDTO.getCertificateRole() == Role.ROOT) {
+    		keyStorePassword = KeyStoreConfig.ROOT_KEYSTORE_PASSWORD;
+    		issuer = this.keyStoreReader.readIssuerFromStore(KeyStoreConfig.ROOT_KEYSTORE_LOCATION, "alias", keyStorePassword.toCharArray(), keyStorePassword.toCharArray());
+    	} else if(issuerDTO.getCertificateRole() == Role.INTERMEDIATE) {
+    		keyStorePassword = KeyStoreConfig.INTERMEDIATE_KEYSTORE_PASSWORD;
+    		issuer = this.keyStoreReader.readIssuerFromStore(KeyStoreConfig.INTERMEDIATE_KEYSTORE_LOCATION, "alias", keyStorePassword.toCharArray(), keyStorePassword.toCharArray());
+    	} else {
+    		//Throw exception because End Entity is somehow trying to issue
+    		throw new Exception();
+    	}
+    	
+        X509Certificate cert = certificateGenerator.generateCertificate(subject, issuer, true);
+        //verify the self signed cert
+        cert.verify(subject.getPublicKey());
+
+        System.out.println("\n===== Certificate issuer=====");
+        System.out.println(cert.getIssuerX500Principal().getName());
+        System.out.println("\n===== Certicate owner =====");
+        System.out.println(cert.getSubjectX500Principal().getName());
+        System.out.println("\n===== Certificate =====");
+        System.out.println("-------------------------------------------------------");
+        System.out.println(cert);
+        System.out.println("-------------------------------------------------------");
+
+        //save the cert in the keystore
+        keyStoreService.saveCertificate(cert, subjectDTO.getAlias(), issuer.getPrivateKey(), Role.END_ENTITY);
+
+        //save the cert in the database -> to be used when ocsp implementation occurs
+        this.certificateRepository.save(new Certificate(subject.getSerialNumber(),subjectDTO.getAlias(), true, Role.END_ENTITY));
+        System.out.println("===================== SUCCESS =====================");
+    }
 
 }

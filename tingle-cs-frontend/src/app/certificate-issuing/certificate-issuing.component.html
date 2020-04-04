@@ -3,7 +3,7 @@
     <mat-horizontal-stepper [linear]="isLinear" fxFlex="100%" fxLayout="column" fxLayoutAlign="center center" #stepper>
         <mat-step [stepControl]="firstFormGroup">
             <form [formGroup]="firstFormGroup" fxFlex="80%" fxLayout="column" fxLayoutAlign="center center"
-                [formGroup]="firstFormGroup" (ngSubmit)="onNext1Click()">
+                (ngSubmit)="onNext1Click()">
                 <ng-template matStepLabel>Fill out Subject Data</ng-template>
                 <mat-card class="form-section" fxLayout="column">
                     <mat-card-header>
@@ -31,7 +31,7 @@
                     <mat-form-field>
                         <mat-label for="statneName">State Name: </mat-label>
                         <input id="locstatneNameality" matInput type="text" name="statneName" required
-                            formControlName="SN">
+                            formControlName="ST">
                     </mat-form-field>
                     <mat-form-field>
                         <mat-label for="country">Country: </mat-label>
@@ -45,7 +45,8 @@
 
                 </mat-card>
                 <div>
-                    <button mat-raised-button color="accent" type="submit" matStepperNext>Next</button>
+                    <button mat-raised-button color="accent" type="submit" matStepperNext
+                    [disabled]="!firstFormGroup.valid">Next</button>
                 </div>
             </form>
         </mat-step>
@@ -59,6 +60,7 @@
 
                     <mat-form-field>
                         <label for="ca">CA: </label>
+                        <!-- Selected ca is in .ts file as selectedCA -->
                         <mat-select id="ca" name="ca" formControlName="ca">
                             <mat-option *ngFor="let ca of cas" value="ca.serialNumber" (click)="onCASelected(ca)">
                                 {{ca.certificateRole}} (Serial Number: {{ca.serialNumber}}, Alias: {{ca.alias}})
@@ -106,35 +108,36 @@
                 </mat-card>
                 <div>
                     <button mat-raised-button color="primary" matStepperPrevious>Back</button>
-                    <button mat-raised-button color="accent" matStepperNext>Next</button>
+                    <button mat-raised-button color="accent" matStepperNext [disabled]="!selectedCA">Next</button>
                 </div>
             </form>
 
         </mat-step>
         <mat-step>
-            <form [formGroup]="thirdFormGroup" fxFlex="100%" fxLayout="column" fxLayoutAlign="center center">
+            <form [formGroup]="thirdFormGroup" fxFlex="100%" fxLayout="column" fxLayoutAlign="center center"
+                (submit)="onDoneClick()">
                 <ng-template matStepLabel>Fill out Other Info</ng-template>
                 <mat-card class="form-section" fxLayout="column">
                     <mat-card-header>
                         <mat-card-title>Other Info</mat-card-title>
                     </mat-card-header>
 
-                    <h3>Extensions:</h3>                    
+                    <h3>Extensions:</h3>
                     Key Usage:
                     <section fxFlex fxLayout="row" fxLayoutAlign="center center">
                         <div>
-                            <mat-checkbox>Digital Signature</mat-checkbox> <br>
-                            <mat-checkbox>Key Encipherment</mat-checkbox> <br>
-                            <mat-checkbox>Non Repudiation</mat-checkbox> <br>
-                            <mat-checkbox>Data Encipherment</mat-checkbox> <br>
-                            <mat-checkbox>Key Agreement</mat-checkbox> <br>
+                            <mat-checkbox [checked]="digitalSignature">Digital Signature</mat-checkbox> <br>
+                            <mat-checkbox [checked]="keyEncipherment">Key Encipherment</mat-checkbox> <br>
+                            <mat-checkbox [checked]="nonRepudiation">Non Repudiation</mat-checkbox> <br>
+                            <mat-checkbox [checked]="dataEncipherment">Data Encipherment</mat-checkbox> <br>
+                            <mat-checkbox [checked]="keyAgreement">Key Agreement</mat-checkbox> <br>
                         </div>
                         <div style="width: 15px;"></div>
                         <div>
-                            <mat-checkbox>Key Cert Sign</mat-checkbox> <br>
-                            <mat-checkbox>cRLSign</mat-checkbox> <br>
-                            <mat-checkbox>Encipher Only</mat-checkbox> <br>
-                            <mat-checkbox>Decipher Only</mat-checkbox> <br>
+                            <mat-checkbox [checked]="keyCertSign">Key Cert Sign</mat-checkbox> <br>
+                            <mat-checkbox [checked]="crlSign">cRLSign</mat-checkbox> <br>
+                            <mat-checkbox [checked]="encipherOnly">Encipher Only</mat-checkbox> <br>
+                            <mat-checkbox [checked]="decipherOnly">Decipher Only</mat-checkbox> <br>
                         </div>
 
                     </section>
@@ -142,11 +145,11 @@
                     <mat-form-field>
                         <!-- BASIC CONSTRAINTS -->
                         <mat-label>Subject Type:</mat-label>
-                        <mat-select id="subject-type" name="subject-type">
-                            <mat-option value="CA">
+                        <mat-select id="subject-type" name="subject-type" formControlName="subjectType">
+                            <mat-option value="CA" (click)="onSubjectTypeClick('CA')">
                                 CA
                             </mat-option>
-                            <mat-option value="end-entity">
+                            <mat-option value="end-entity" (click)="onSubjectTypeClick('end-entity')">
                                 End-Entity
                             </mat-option>
                         </mat-select>
@@ -154,18 +157,18 @@
 
                     <mat-form-field>
                         <mat-label>Password:</mat-label>
-                        <input id="password" matInput type="password" name="password">
+                        <input id="password" matInput type="password" name="password" formControlName="password">
                     </mat-form-field>
 
                     <mat-form-field>
                         <mat-label>Alias:</mat-label>
-                        <input id="alias" matInput type="text" name="alias">
+                        <input id="alias" matInput type="text" name="alias" formControlName="alias">
                     </mat-form-field>
 
                 </mat-card>
                 <div>
                     <button mat-raised-button color="primary" matStepperPrevious>Back</button>
-                    <button mat-raised-button color="accent">Done</button>
+                    <button mat-raised-button color="accent" type="submit" [disabled]="!thirdFormGroup.valid">Done</button>
                 </div>
             </form>
 
