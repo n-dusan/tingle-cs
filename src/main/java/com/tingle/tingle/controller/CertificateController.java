@@ -75,6 +75,7 @@ public class CertificateController {
 
         return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
     }
+    
     @PostMapping(value = "/new/ca")
     public ResponseEntity<List<CertificateDTO>> makeNewCA(@RequestBody CertificateX500NameDTO dto) {
         keyStoreService.generateCAKeyStore(dto);

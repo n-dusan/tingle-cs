@@ -67,9 +67,7 @@ export class CertificateIssuingComponent implements OnInit {
   }
 
   onNext1Click() {
-    console.log('Self signed: ' + this.isSelfSigned)
-    console.log(this.firstFormGroup)
-
+    // add some checking if needed
   }
 
 
@@ -102,6 +100,9 @@ export class CertificateIssuingComponent implements OnInit {
 
     const cert = new Certificate(null, null, alias, active, role, cn, o, l, st, c, e, ou);
     const issuer = this.selectedCA;
+
+    // TODO: don't use EndEntityCertificate. Use Certificate and put 
+    // issuers' serial number as cert.serialNumber
     const endEntityCert: EndEntityCertificate = new EndEntityCertificate(cert, issuer);
     
     const newCert = new Certificate(null, null, alias, true, role, cn, o, l , st, c, e, ou);
@@ -109,8 +110,11 @@ export class CertificateIssuingComponent implements OnInit {
     // Make request based on certificate role
     if(role === 'ROOT'){
       this.makeRootRequest(newCert);
-    }
-    if (role === 'END_ENTITY') {
+    } else if (role === 'INTERMEDIATE') {
+      // set serial number to issuer.serialNumber
+      newCert.serialNumber = this.selectedCA.serialNumber;
+      this.makeCARequest(newCert);
+    }else {
       this.makeEndEntityRequest(endEntityCert);
     }
 
@@ -143,6 +147,20 @@ export class CertificateIssuingComponent implements OnInit {
   makeRootRequest(cert: Certificate) {
     this.spin = true;
     this.certificateService.makeNewRoot(cert).subscribe(
+      data => {
+        this.spin = false;
+        console.log(data);
+      },
+      error => {
+        this.spin = false;
+        console.log(error)
+      }
+    );
+  }
+
+  makeCARequest(cert: Certificate) {
+    this.spin = true;
+    this.certificateService.makeNewCA(cert).subscribe(
       data => {
         this.spin = false;
         console.log(data);

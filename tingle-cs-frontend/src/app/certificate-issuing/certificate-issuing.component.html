@@ -63,7 +63,7 @@
                     </mat-card-header>
 
                     <mat-form-field *ngIf="!isSelfSigned">
-                        <label for="ca">CA: </label>
+                        <mat-label for="ca">CA: </mat-label>
                         <!-- Selected ca is in .ts file as selectedCA -->
                         <mat-select id="ca" name="ca" formControlName="ca">
                             <mat-option *ngFor="let ca of cas" value="ca.serialNumber" (click)="onCASelected(ca)">
