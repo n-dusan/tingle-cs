@@ -19,6 +19,7 @@ import { MatStepperModule } from '@angular/material/stepper';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatTableModule } from '@angular/material/table';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { LoginComponent } from './auth/login/login.component';
@@ -68,6 +69,7 @@ import { CertificateIssuingComponent } from './certificate-issuing/certificate-i
     MatSlideToggleModule,
     MatCheckboxModule,
     MatDividerModule,
+    MatTableModule,
     MatProgressSpinnerModule
   ],
   providers: [],

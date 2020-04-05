@@ -184,7 +184,7 @@ public class CertificateService {
     }
 
 
-    public void generateCACertificate(CertificateX500NameDTO dto) throws ParseException, Exception {
+    public void generateCACertificate(CertificateX500NameDTO dto) throws Exception {
 
         List<X509Certificate> cAJoinedList = findCACertificates();
 

@@ -6,5 +6,6 @@
     <div class="col-md-6">
         <br/>
         <app-all-certificates-item *ngIf="showDetails"></app-all-certificates-item>
+        <div style="text-align: center;" *ngIf="!showDetails"> <h2>Please select a certificate. </h2>  </div>
     </div>
 </div>

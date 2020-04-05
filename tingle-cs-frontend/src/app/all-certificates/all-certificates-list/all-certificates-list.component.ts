@@ -12,12 +12,17 @@ export class AllCertificatesListComponent implements OnInit, OnDestroy {
 
   certificates: Certificate[];
   private subscription: Subscription;
+
+
+  displayedColumns: string[] = ['serial number', 'active', 'certificate authority'];
+  isLoadingResults: boolean = true;
   
   constructor(private certificateService: CertificatesService) { }
 
   ngOnInit(): void {
      this.subscription =  this.certificateService.getCertificates().subscribe((data: Certificate[]) => {
         this.certificates = data;
+        this.isLoadingResults = false;
       })
   }
 
