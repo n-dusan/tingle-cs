@@ -132,12 +132,15 @@ export class CertificateIssuingComponent implements OnInit {
 
 
   makeEndEntityRequest(endEntityCert: any) {
+    this.spin = true;
     this.certificateService.makeNewEndEntity(endEntityCert).subscribe(
       data => {
+        this.spin = false;
         console.log('SUCCESS')
         console.log(data);
       },
       error => {
+        this.spin = false;
         console.log('ERROR')
         console.log(error)
       }
