@@ -3,24 +3,29 @@
       <mat-card-title>Certificate details</mat-card-title>
     </mat-card-header>
     <mat-card-content>
-      <p>
         <b> Issuer </b>
         <br/>
-        CN: {{selectedCertificate[0].cn}} <br/>
-        C: {{selectedCertificate[0].c}} <br/>
-        O: {{selectedCertificate[0].o}} <br/>
-        OU: {{selectedCertificate[0].ou}} <br/>
-      </p>
+        <hr/>
+        CN: <b> {{selectedCertificate[0].cn}} </b> <br/>
+        C: <b> {{selectedCertificate[0].c}} </b> <br/>
+        O: <b> {{selectedCertificate[0].o}} </b> <br/>
+        OU: <b> {{selectedCertificate[0].ou}} </b> <br/>
+        ST: <b> {{selectedCertificate[0].st }}</b> <br/>
+        L: <b> {{selectedCertificate[0].l }} </b> <br/>
+        E: <b> {{selectedCertificate[0].e }} </b> <br/>
       <hr/>
-      <p>
         <b> Subject </b>
         <br/>
-        CN: {{selectedCertificate[1].cn}} <br/>
-        C: {{selectedCertificate[1].c}} <br/>
-        O: {{selectedCertificate[1].o}} <br/>
-        OU: {{selectedCertificate[1].ou}} <br/>
-        Certificate authority: {{selectedCertificate[1].certificateRole}} <br/>
-      </p>
+        <hr/>
+        CN:  <b> {{selectedCertificate[1].cn}} </b> <br/>
+        C:  <b>{{selectedCertificate[1].c}}</b> <br/>
+        O:  <b>{{selectedCertificate[1].o}} </b><br/>
+        OU: <b> {{selectedCertificate[1].ou}} </b><br/>
+        ST: <b> {{selectedCertificate[1].st }} </b> <br/>
+        L: <b> {{selectedCertificate[1].l }}</b> <br/>
+        E: <b> {{selectedCertificate[1].e }} </b> <br/>
+        Certificate authority: <b> {{selectedCertificate[1].certificateRole}} </b> <br/>
+      
     </mat-card-content>
     <mat-card-actions>
       <button mat-raised-button color="warn">Revoke</button>
