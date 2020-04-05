@@ -77,7 +77,8 @@ public class KeyStoreService {
 
     /**
      * Metoda pravi root .jks, ako ga nema, i ubacuje u njega jedan self-signed sertifikat
-     *
+     * TODO: nova metoda za dodavanje roota,  iskomentarisati ovaj loadKeyStore i umesto null usmeriti putanju ka već kreiranom
+     * root keystore fajlu
      *  */
     public void generateRootKeyStore() throws CertificateException, ParseException, NoSuchAlgorithmException, SignatureException, NoSuchProviderException, InvalidKeyException {
         keyStoreWriter.loadKeyStore(null, KeyStoreConfig.ROOT_KEYSTORE_PASSWORD.toCharArray());
@@ -101,17 +102,7 @@ public class KeyStoreService {
     }
 
     public void generateCAKeyStore(CertificateX500NameDTO dto) {
-        keyStoreWriter.loadKeyStore(null, KeyStoreConfig.INTERMEDIATE_KEYSTORE_PASSWORD.toCharArray());
-
-        dto.setC(dto.getC());
-        dto.setCN(dto.getCN());
-        dto.setE(dto.getE());
-        dto.setL(dto.getL());
-        dto.setOU(dto.getOU());
-        dto.setO(dto.getO());
-        dto.setST(dto.getST());
-        dto.setCertificateRole(dto.getCertificateRole());
-        dto.setSerialNumber(dto.getSerialNumber());
+        keyStoreWriter.loadKeyStore(KeyStoreConfig.INTERMEDIATE_KEYSTORE_LOCATION, KeyStoreConfig.INTERMEDIATE_KEYSTORE_PASSWORD.toCharArray());
 
         try {
             certificateService.generateCACertificate(dto);

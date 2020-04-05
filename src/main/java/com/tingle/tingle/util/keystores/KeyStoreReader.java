@@ -52,8 +52,6 @@ public class KeyStoreReader {
             try {
                  issuerName = new JcaX509CertificateHolder((X509Certificate) cert).getSubject();
             } catch(Exception e) {
-
-                System.out.println("a odje???");
                 return null;
 
             }

@@ -111,7 +111,7 @@ public class CertificateService {
      * validated :)
      * */
 
-    public List<CertificateX500NameDTO> getCertificateCASubjectData() throws FileNotFoundException, InvalidNameException, CertificateEncodingException {
+    public List<CertificateX500NameDTO> getCertificateCASubjectData() throws InvalidNameException, CertificateEncodingException {
 
         List<X509Certificate> cAJoinedList = findCACertificates();
 
@@ -170,7 +170,7 @@ public class CertificateService {
         //save the cert in the keystore
         keyStoreService.saveCertificate(cert, subject.getSerialNumber(), issuer.getPrivateKey(), Role.ROOT);
 
-        //save the cert in the database -> to be used when ocsp implementation occurs
+        //save the cert in the database -> used for revokation check
         this.certificateRepository.save(new Certificate(subject.getSerialNumber(), true, Role.ROOT));
     }
 
@@ -206,6 +206,7 @@ public class CertificateService {
                 X509Certificate cert = certificateGenerator.generateCertificate(subject, issuer, true);
 
                 //TODO: verify
+                validate(cert);
 
                 System.out.println("\n===== Certificate issuer=====");
                 System.out.println(cert.getIssuerX500Principal().getName());
@@ -244,7 +245,7 @@ public class CertificateService {
         if(dto.getCertificateRole() == Role.ROOT) {
             cal.add(Calendar.YEAR, CertificateConfig.ROOT_YEARS);
         } else if(dto.getCertificateRole() == Role.INTERMEDIATE) {
-            cal.add(Calendar.YEAR, CertificateConfig.INTERMEDIATE_YEARS);
+            //.add(Calendar.YEAR, CertificateConfig.INTERMEDIATE_YEARS);
         } else {
             cal.add(Calendar.YEAR, CertificateConfig.END_ENTITY_YEARS);
         }
@@ -361,6 +362,7 @@ public class CertificateService {
             X509Certificate[] chain = converter.buildPath(certificate, cAJoined);
 
                 try {
+                    //proverava da li je istekao sertifikat
                     chain[0].checkValidity();
                 } catch(CertificateExpiredException e) {
                     return false;
