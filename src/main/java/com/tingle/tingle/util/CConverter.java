@@ -8,6 +8,12 @@ import org.bouncycastle.asn1.x500.style.IETFUtils;
 import org.springframework.stereotype.Component;
 
 import javax.naming.InvalidNameException;
+import java.security.*;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.LinkedList;
 
 @Component
 public class CConverter {
@@ -47,5 +53,86 @@ public class CConverter {
         }
 
         return issuerAndSubjectDTO;
+    }
+
+
+    /** Creates a certificate chain
+     *
+     * @param startingPoint the X509Certificate for which we want to find
+     *                      ancestors
+     *
+     * @param certificates  A pool of certificates in which we expect to find
+     *                      the startingPoint's ancestors.
+     *
+     * @return Array of X509Certificates, starting with the "startingPoint" and
+     *         ending with highest level ancestor we could find in the supplied
+     *         collection.
+     */
+    public static X509Certificate[] buildPath(
+            X509Certificate startingPoint, Collection certificates
+    ) throws NoSuchAlgorithmException, InvalidKeyException,
+            NoSuchProviderException, CertificateException {
+
+        LinkedList path = new LinkedList();
+        path.add(startingPoint);
+        boolean nodeAdded = true;
+        // Keep looping until an iteration happens where we don't add any nodes
+        // to our path.
+        while (nodeAdded) {
+            // We'll start out by assuming nothing gets added.  If something
+            // gets added, then nodeAdded will be changed to "true".
+            nodeAdded = false;
+            X509Certificate top = (X509Certificate) path.getLast();
+            if (isSelfSigned(top)) {
+                // We're self-signed, so we're done!
+                break;
+            }
+
+            // Not self-signed.  Let's see if we're signed by anyone in the
+            // collection.
+            Iterator it = certificates.iterator();
+            while (it.hasNext()) {
+                X509Certificate x509 = (X509Certificate) it.next();
+                if (verify(top, x509.getPublicKey())) {
+                    // We're signed by this guy!  Add him to the chain we're
+                    // building up.
+                    path.add(x509);
+                    nodeAdded = true;
+                    it.remove(); // Not interested in this guy anymore!
+                    break;
+                }
+                // Not signed by this guy, let's try the next guy.
+            }
+        }
+        X509Certificate[] results = new X509Certificate[path.size()];
+        path.toArray(results);
+        return results;
+    }
+
+    public static boolean isSelfSigned(X509Certificate cert)
+            throws CertificateException, InvalidKeyException,
+            NoSuchAlgorithmException, NoSuchProviderException {
+
+        return verify(cert, cert.getPublicKey());
+    }
+
+    public static boolean verify(X509Certificate cert, PublicKey key)
+            throws CertificateException, InvalidKeyException,
+            NoSuchAlgorithmException, NoSuchProviderException {
+
+        String sigAlg = cert.getSigAlgName();
+        String keyAlg = key.getAlgorithm();
+        sigAlg = sigAlg != null ? sigAlg.trim().toUpperCase() : "";
+        keyAlg = keyAlg != null ? keyAlg.trim().toUpperCase() : "";
+        if (keyAlg.length() >= 2 && sigAlg.endsWith(keyAlg)) {
+            try {
+                cert.verify(key);
+                return true;
+            } catch (SignatureException se) {
+                return false;
+            }
+        } else {
+            return false;
+        }
     }
 }

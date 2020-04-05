@@ -81,40 +81,10 @@ public class CertificateService {
         try {
             List<X509Certificate> x509list = keyStoreService.findKeyStoreCertificates(certificateRole);
 
-            List<X509Certificate> cAJoined = findCACertificates();
-
             for (X509Certificate x509Certificate : x509list) {
                 if(x509Certificate.getSerialNumber().toString().equals(serialNumber)) {
 
-                    try {
-                        X509Certificate[] chain = buildPath(x509Certificate, cAJoined);
 
-                        for (X509Certificate certificate : chain) {
-                            try {
-                                certificate.checkValidity();
-
-                            } catch(CertificateExpiredException e) {
-                                e.printStackTrace();
-                            } catch(CertificateNotYetValidException e)  {
-                                e.printStackTrace();
-                            }
-                            System.out.println("=========HAVE I FOUND MY CHAIN?" + certificate.getSubjectX500Principal().getName());
-                            String sn = certificate.getSerialNumber().toString();
-
-                            //Certificate cer = certificateRepository.findCertificateBySerialNumber(sn);
-                            if(isSelfSigned(certificate)) {
-                                System.out.println("==========I AM ROOT");
-                            }
-                        }
-                    } catch (CertificateException e) {
-                        e.printStackTrace();
-                    } catch (NoSuchAlgorithmException e) {
-                        e.printStackTrace();
-                    } catch (InvalidKeyException e) {
-                        e.printStackTrace();
-                    } catch (NoSuchProviderException e) {
-                        e.printStackTrace();
-                    }
                     X500Name subjName = new JcaX509CertificateHolder(x509Certificate).getSubject();
                     X500Name issuerName = new JcaX509CertificateHolder(x509Certificate).getIssuer();
 
@@ -138,32 +108,36 @@ public class CertificateService {
 
     /**
      * Returns data of all CA's in the system.
-     * TODO: validate them
+     * validated :)
      * */
 
     public List<CertificateX500NameDTO> getCertificateCASubjectData() throws FileNotFoundException, InvalidNameException, CertificateEncodingException {
-
 
         List<X509Certificate> cAJoinedList = findCACertificates();
 
         List<CertificateX500NameDTO> cADTOList = new ArrayList<CertificateX500NameDTO>();
 
         for (X509Certificate x509Certificate : cAJoinedList) {
+
+            //if this certificate isn't valid, don't append it
+            if(!validate(x509Certificate)) continue;
+
             String serialNumber = x509Certificate.getSerialNumber().toString();
+
+            X500Name subjName = new JcaX509CertificateHolder(x509Certificate).getSubject();
+            CertificateX500NameDTO[] x509dto = converter.convertFromX500Principals(subjName, subjName);
+
+            Certificate repositoryCertificate = certificateRepository.findCertificateBySerialNumber(serialNumber);
+            //get subject data in better format with a converter
+            x509dto[1].setSerialNumber(serialNumber);
+            //Izvuci rolu sertifikata iz repository sertifikata
+
+
+            x509dto[1].setCertificateRole(repositoryCertificate.getCertificateRole());
 
             //...simulation of OCSP request ...
             OCSPResponse ocspResponse = checkCertificate(serialNumber);
-
             if(ocspResponse == OCSPResponse.GOOD) {
-                X500Name subjName = new JcaX509CertificateHolder(x509Certificate).getSubject();
-                Certificate repositoryCertificate = certificateRepository.findCertificateBySerialNumber(serialNumber);
-                //get subject data in better format with a converter
-                CertificateX500NameDTO[] x509dto = converter.convertFromX500Principals(subjName, subjName);
-                x509dto[1].setSerialNumber(serialNumber);
-                //Izvuci rolu sertifikata iz repository sertifikata
-                x509dto[1].setCertificateRole(repositoryCertificate.getCertificateRole());
-
-                //append the certificate to the valid cA list
                 cADTOList.add(x509dto[1]);
             }
         }
@@ -185,17 +159,13 @@ public class CertificateService {
         IssuerData issuer = generateIssuerData(dto, subject.getPrivateKey());
 
         X509Certificate cert = certificateGenerator.generateCertificate(subject, issuer, true);
-        //verify the self signed cert
-        cert.verify(subject.getPublicKey());
+
 
         System.out.println("\n===== Certificate issuer=====");
         System.out.println(cert.getIssuerX500Principal().getName());
         System.out.println("\n===== Certicate owner =====");
         System.out.println(cert.getSubjectX500Principal().getName());
         System.out.println("\n===== Certificate =====");
-        System.out.println("-------------------------------------------------------");
-        System.out.println(cert);
-        System.out.println("-------------------------------------------------------");
 
         //save the cert in the keystore
         keyStoreService.saveCertificate(cert, subject.getSerialNumber(), issuer.getPrivateKey(), Role.ROOT);
@@ -220,18 +190,15 @@ public class CertificateService {
             if(dto.getSerialNumber().equalsIgnoreCase(serialNumber)) {
 
                 //prvo ga citaj iz roota
-                System.out.println("=====KOD ROOTA sam");
                 IssuerData issuer;
 
                 issuer = keyStoreReader.readIssuerFromStore(KeyStoreConfig.ROOT_KEYSTORE_LOCATION,
                             serialNumber, KeyStoreConfig.ROOT_KEYSTORE_PASSWORD.toCharArray(),
                             KeyStoreConfig.ROOT_KEYSTORE_PASSWORD.toCharArray());
                 if(issuer == null) {
-                    System.out.println("======Hesasn ku yo");
                     issuer = keyStoreReader.readIssuerFromStore(KeyStoreConfig.INTERMEDIATE_KEYSTORE_LOCATION,
                             serialNumber, KeyStoreConfig.INTERMEDIATE_KEYSTORE_PASSWORD.toCharArray(),
                             KeyStoreConfig.INTERMEDIATE_KEYSTORE_PASSWORD.toCharArray());
-                    System.out.println("======a sad JE OVDE?" + issuer.getX500name().getRDNs().length);
                 }
 
                 SubjectData subject = generateSubjectData(dto);
@@ -378,85 +345,52 @@ public class CertificateService {
         return null;
     }
 
-    /** Creates a certificate chain
-     *
-     * @param startingPoint the X509Certificate for which we want to find
-     *                      ancestors
-     *
-     * @param certificates  A pool of certificates in which we expect to find
-     *                      the startingPoint's ancestors.
-     *
-     * @return Array of X509Certificates, starting with the "startingPoint" and
-     *         ending with highest level ancestor we could find in the supplied
-     *         collection.
-     */
-    public static X509Certificate[] buildPath(
-            X509Certificate startingPoint, Collection certificates
-    ) throws NoSuchAlgorithmException, InvalidKeyException,
-            NoSuchProviderException, CertificateException {
 
-        LinkedList path = new LinkedList();
-        path.add(startingPoint);
-        boolean nodeAdded = true;
-        // Keep looping until an iteration happens where we don't add any nodes
-        // to our path.
-        while (nodeAdded) {
-            // We'll start out by assuming nothing gets added.  If something
-            // gets added, then nodeAdded will be changed to "true".
-            nodeAdded = false;
-            X509Certificate top = (X509Certificate) path.getLast();
-            if (isSelfSigned(top)) {
-                // We're self-signed, so we're done!
-                break;
-            }
+    /**
+     * - constructs a chain
+     * - verifies their signatures
+     * - checks if the first chain element is valid (if it isn't expired)
+     * - checks if the chain leads to root
+     * */
 
-            // Not self-signed.  Let's see if we're signed by anyone in the
-            // collection.
-            Iterator it = certificates.iterator();
-            while (it.hasNext()) {
-                X509Certificate x509 = (X509Certificate) it.next();
-                if (verify(top, x509.getPublicKey())) {
-                    // We're signed by this guy!  Add him to the chain we're
-                    // building up.
-                    path.add(x509);
-                    nodeAdded = true;
-                    it.remove(); // Not interested in this guy anymore!
-                    break;
+    private boolean validate(X509Certificate certificate) {
+
+        List<X509Certificate> cAJoined = findCACertificates();
+
+        try {
+            X509Certificate[] chain = converter.buildPath(certificate, cAJoined);
+
+                try {
+                    chain[0].checkValidity();
+                } catch(CertificateExpiredException e) {
+                    return false;
+                } catch(CertificateNotYetValidException e)  {
+                    return false;
                 }
-                // Not signed by this guy, let's try the next guy.
-            }
-        }
-        X509Certificate[] results = new X509Certificate[path.size()];
-        path.toArray(results);
-        return results;
-    }
 
-    public static boolean isSelfSigned(X509Certificate cert)
-            throws CertificateException, InvalidKeyException,
-            NoSuchAlgorithmException, NoSuchProviderException {
 
-        return verify(cert, cert.getPublicKey());
-    }
-
-    public static boolean verify(X509Certificate cert, PublicKey key)
-            throws CertificateException, InvalidKeyException,
-            NoSuchAlgorithmException, NoSuchProviderException {
-
-        String sigAlg = cert.getSigAlgName();
-        String keyAlg = key.getAlgorithm();
-        sigAlg = sigAlg != null ? sigAlg.trim().toUpperCase() : "";
-        keyAlg = keyAlg != null ? keyAlg.trim().toUpperCase() : "";
-        if (keyAlg.length() >= 2 && sigAlg.endsWith(keyAlg)) {
-            try {
-                cert.verify(key);
+            if(converter.isSelfSigned(chain[chain.length-1])) {
+                System.out.println("==========I AM GROOT");
                 return true;
-            } catch (SignatureException se) {
-                return false;
             }
-        } else {
-            return false;
-        }
-    }
 
+        } catch (CertificateException e) {
+            e.printStackTrace();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (InvalidKeyException e) {
+            e.printStackTrace();
+        } catch (NoSuchProviderException e) {
+            e.printStackTrace();
+        }
+
+        //todo: if certificate isn't valid, recursively revoke every child
+        //for now, just set the appropriate certificate to invalid
+        Certificate invalidCertificate = certificateRepository.findCertificateBySerialNumber(certificate.getSerialNumber().toString());
+        invalidCertificate.setActive(false);
+        this.certificateRepository.save(invalidCertificate);
+
+        return false;
+    }
 
 }

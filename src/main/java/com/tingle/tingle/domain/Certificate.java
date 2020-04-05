@@ -24,6 +24,7 @@ public class Certificate implements Serializable {
     @Column(name="certificateRole", nullable = false)
     private Role certificateRole;
 
+
     public Certificate() {}
 
     public Certificate(String serialNumber, boolean active, Role role) {
@@ -63,5 +64,15 @@ public class Certificate implements Serializable {
 
     public void setActive(boolean active) {
         this.active = active;
+    }
+
+    @Override
+    public String toString() {
+        return "Certificate{" +
+                "id=" + id +
+                ", serialNumber='" + serialNumber + '\'' +
+                ", active=" + active +
+                ", certificateRole=" + certificateRole +
+                '}';
     }
 }
