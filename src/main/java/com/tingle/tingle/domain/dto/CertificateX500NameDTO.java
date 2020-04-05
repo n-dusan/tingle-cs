@@ -7,7 +7,8 @@ import com.tingle.tingle.domain.enums.Role;
  * */
 public class CertificateX500NameDTO {
 
-    //TODO: dodati jos neka potrebna polja sa forme za sertifikat
+    private ExtensionsDTO extensions;
+
     private String CN;
     private String O;
     private String L;
@@ -15,14 +16,12 @@ public class CertificateX500NameDTO {
     private String C;
     private String E;
     private String OU;
+
     private String serialNumber;
 
     //rola je tip sertifikata -> ROOT, END_ENTITY ili INTERMEDIATE, sa fronta se mapira kao string
     private Role certificateRole;
-    //admin unosi alias pod kojim ce se cuvati sertifikat
-    private String alias;
 
-    //TODO: fali lozinka, ako se implementira :D
 
     public CertificateX500NameDTO() {}
     
@@ -83,14 +82,6 @@ public class CertificateX500NameDTO {
         this.certificateRole = certificateRole;
     }
 
-    public String getAlias() {
-        return alias;
-    }
-
-    public void setAlias(String alias) {
-        this.alias = alias;
-    }
-
     public String getOU() {
         return OU;
     }
@@ -107,5 +98,9 @@ public class CertificateX500NameDTO {
     public void setSerialNumber(String serialNumber) {
         this.serialNumber = serialNumber;
     }
+
+    public ExtensionsDTO getExtensions() { return extensions; }
+
+    public void setExtensions(ExtensionsDTO extensions) { this.extensions = extensions; }
 
 }

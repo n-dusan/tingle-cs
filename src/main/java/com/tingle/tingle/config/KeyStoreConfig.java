@@ -1,4 +1,4 @@
-package com.tingle.tingle.config.keystores;
+package com.tingle.tingle.config;
 import org.springframework.stereotype.Component;
 
 
@@ -13,8 +13,4 @@ public class KeyStoreConfig {
     public static final String INTERMEDIATE_KEYSTORE_PASSWORD = "intermediate";
     public static final String END_ENTITY_KEYSTORE_PASSWORD = "end-entity";
 
-
-    public KeyStoreConfig() {}
-
-   
 }

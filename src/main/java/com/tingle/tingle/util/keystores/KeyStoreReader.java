@@ -1,4 +1,4 @@
-package com.tingle.tingle.config.keystores;
+package com.tingle.tingle.util.keystores;
 
 import com.tingle.tingle.domain.certificates.IssuerData;
 import org.bouncycastle.asn1.x500.X500Name;
@@ -11,10 +11,7 @@ import java.security.*;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Enumeration;
-import java.util.List;
+import java.util.*;
 
 @Component
 public class KeyStoreReader {
@@ -51,23 +48,38 @@ public class KeyStoreReader {
             Certificate cert = keyStore.getCertificate(alias);
             //Iscitava se privatni kljuc vezan za javni kljuc koji se nalazi na sertifikatu sa datim aliasom
             PrivateKey privKey = (PrivateKey) keyStore.getKey(alias, keyPass);
+            X500Name issuerName = null;
+            try {
+                 issuerName = new JcaX509CertificateHolder((X509Certificate) cert).getSubject();
+            } catch(Exception e) {
+                return null;
 
-            X500Name issuerName = new JcaX509CertificateHolder((X509Certificate) cert).getSubject();
+            }
+
             return new IssuerData(privKey, issuerName);
         } catch (KeyStoreException e) {
             e.printStackTrace();
+            return null;
         } catch (FileNotFoundException e) {
             e.printStackTrace();
+            return null;
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
+            return null;
         } catch (CertificateException e) {
             e.printStackTrace();
+            return null;
         } catch (UnrecoverableKeyException e) {
             e.printStackTrace();
+            return null;
         } catch (IOException e) {
             e.printStackTrace();
+            return null;
+        } catch(NullPointerException e) {
+            e.printStackTrace();
+            return null;
         }
-        return null;
+
     }
 
     /**
@@ -152,13 +164,23 @@ public class KeyStoreReader {
             while(enumeration.hasMoreElements()) {
                 String alias = enumeration.nextElement();
                 Certificate certificate = ks.getCertificate(alias);
+                certList.add(certificate);
+//                //get certificate chain
+//                Certificate[] certs = ks.getCertificateChain(alias);
+//
+//                //convert it to a list
+//                List<Certificate> toList = Arrays.stream(certs).collect(Collectors.toList());
+//                certList.addAll(toList);
+//                for (Certificate certificate : toList) {
+                   //X509Certificate certificate1 = (X509Certificate) certificate;
 
-                    certList.add(certificate);
                     System.out.println("alias name: " + alias);
-                    System.out.println(certificate.toString());
-                    System.out.println("=========== Private key =========== ");
-                    PrivateKey pk = readPrivateKey(keystoreFile, new String(password),alias, new String(password));
-                    System.out.println("Private key: " + Arrays.toString(Base64.encode(pk.getEncoded())));
+                    System.out.println(certificate);
+//                    System.out.println("=========== Private key =========== ");
+//                    PrivateKey pk = readPrivateKey(keystoreFile, new String(password),alias, new String(password));
+//                    System.out.println("Private key: " + Arrays.toString(Base64.encode(pk.getEncoded())));
+
+                //}
 
             }
 
@@ -167,7 +189,7 @@ public class KeyStoreReader {
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            System.out.println("Couldn't open " + keystoreFile + ". It doesn't exist!");
         } catch (KeyStoreException e) {
             e.printStackTrace();
         } catch (IOException e) {
