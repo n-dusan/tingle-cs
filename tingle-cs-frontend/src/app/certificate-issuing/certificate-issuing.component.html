@@ -37,6 +37,10 @@
                         <mat-label for="country">Country: </mat-label>
                         <input id="country" matInput type="text" name="country" required formControlName="CO">
                     </mat-form-field>
+                    <mat-form-field>
+                        <mat-label for="email">E-Mail: </mat-label>
+                        <input id="email" matInput type="email" name="email" required formControlName="E">
+                    </mat-form-field>
 
                     <mat-slide-toggle color="primary" [checked]="isSelfSigned" id="self-signed" disabled="false"
                         matInput>

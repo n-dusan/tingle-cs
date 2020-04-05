@@ -51,7 +51,8 @@ export class CertificateIssuingComponent implements OnInit {
       ON: ['', Validators.required],
       LN: ['', Validators.required],
       ST: ['', Validators.required],
-      CO: ['', Validators.required]
+      CO: ['', Validators.required],
+      E: ['', Validators.required]
     });
     this.secondFormGroup = this._formBuilder.group({
       ca: ['', Validators.required]
@@ -97,7 +98,7 @@ export class CertificateIssuingComponent implements OnInit {
     const st = this.firstFormGroup.value.ST;
     const c = this.firstFormGroup.value.CO;
     const ou = this.firstFormGroup.value.OU;
-    const e = "";
+    const e = this.firstFormGroup.value.E;
 
     const cert = new Certificate(null, null, alias, active, role, cn, o, l, st, c, e, ou);
     const issuer = this.selectedCA;
