@@ -129,6 +129,6 @@ public class KeyStoreService {
 		}
 
         //sacuvaj stanje keystora
-        keyStoreWriter.saveKeyStore(KeyStoreConfig.ROOT_KEYSTORE_LOCATION, KeyStoreConfig.ROOT_KEYSTORE_PASSWORD.toCharArray());
+        keyStoreWriter.saveKeyStore(KeyStoreConfig.END_ENTITY_KEYSTORE_LOCATION, KeyStoreConfig.END_ENTITY_KEYSTORE_PASSWORD.toCharArray());
     }
 }
