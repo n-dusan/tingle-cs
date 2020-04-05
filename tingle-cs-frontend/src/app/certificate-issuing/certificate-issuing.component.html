@@ -1,4 +1,4 @@
-<section fxFlex="100%" fxLayout="column" fxLayoutAlign="center center" style="margin-top: 25px;">
+<section fxFlex="100%" fxLayout="column" fxLayoutAlign="center center" style="margin-top: 25px;" *ngIf="!spin">
     <h1>New Certificate</h1>
     <mat-horizontal-stepper [linear]="isLinear" fxFlex="100%" fxLayout="column" fxLayoutAlign="center center" #stepper>
         <mat-step [stepControl]="firstFormGroup">
@@ -42,15 +42,15 @@
                         <input id="email" matInput type="email" name="email" required formControlName="E">
                     </mat-form-field>
 
-                    <mat-slide-toggle color="primary" [checked]="isSelfSigned" id="self-signed" disabled="false"
-                        matInput>
+
+                    <mat-slide-toggle color="primary" id="self-signed" (click)="sliderClick()" matInput>
                         Self-Signed
                     </mat-slide-toggle>
 
                 </mat-card>
                 <div>
                     <button mat-raised-button color="accent" type="submit" matStepperNext
-                    [disabled]="!firstFormGroup.valid">Next</button>
+                        [disabled]="!firstFormGroup.valid">Next</button>
                 </div>
             </form>
         </mat-step>
@@ -62,7 +62,7 @@
                         <mat-card-title>Issuer Data</mat-card-title>
                     </mat-card-header>
 
-                    <mat-form-field>
+                    <mat-form-field *ngIf="!isSelfSigned">
                         <label for="ca">CA: </label>
                         <!-- Selected ca is in .ts file as selectedCA -->
                         <mat-select id="ca" name="ca" formControlName="ca">
@@ -72,6 +72,9 @@
                         </mat-select>
                     </mat-form-field>
 
+                    <div *ngIf="isSelfSigned">
+                        <h1>This certificate is Self-Signed.</h1>
+                    </div>
 
                     <!-- Selected CA -->
                     <section *ngIf="selectedCA">
@@ -112,7 +115,8 @@
                 </mat-card>
                 <div>
                     <button mat-raised-button color="primary" matStepperPrevious>Back</button>
-                    <button mat-raised-button color="accent" matStepperNext [disabled]="!selectedCA">Next</button>
+                    <button mat-raised-button color="accent" matStepperNext
+                        [disabled]="!selectedCA && !isSelfSigned">Next</button>
                 </div>
             </form>
 
@@ -146,7 +150,7 @@
 
                     </section>
                     <br>
-                    <mat-form-field>
+                    <mat-form-field *ngIf="!isSelfSigned">
                         <!-- BASIC CONSTRAINTS -->
                         <mat-label>Subject Type:</mat-label>
                         <mat-select id="subject-type" name="subject-type" formControlName="subjectType">
@@ -157,6 +161,13 @@
                                 End-Entity
                             </mat-option>
                         </mat-select>
+                    </mat-form-field>
+
+                    <mat-form-field *ngIf="isSelfSigned">
+                        <!-- BASIC CONSTRAINTS -->
+                        <!-- If the certificate is Self-Signed, its type is CA by default -->
+                        <mat-label>Subject Type:</mat-label>
+                        <input type="text" matInput value="CA" disabled>
                     </mat-form-field>
 
                     <mat-form-field>
@@ -172,10 +183,20 @@
                 </mat-card>
                 <div>
                     <button mat-raised-button color="primary" matStepperPrevious>Back</button>
-                    <button mat-raised-button color="accent" type="submit" [disabled]="!thirdFormGroup.valid">Done</button>
+                    <!-- [disabled]="!thirdFormGroup.valid" -->
+                    <button mat-raised-button color="accent" type="submit">Done</button>
                 </div>
             </form>
 
         </mat-step>
+
     </mat-horizontal-stepper>
+
 </section>
+
+<div *ngIf="spin" fxFlex="100%" fxLayout="column" fxLayoutAlign="center center" style="margin-top:25px">
+    <mat-progress-spinner color="primary" mode="indeterminate">
+    </mat-progress-spinner>
+    <h1 style="margin-top: 15px">Just a Moment...</h1>
+    <h3>Your request is being processed.</h3>
+</div>

@@ -41,4 +41,8 @@ export class CertificatesService {
     makeNewEndEntity(cert : EndEntityCertificate) : Observable<Certificate>{
         return this.http.post<Certificate>(this.url + '/new/end-entity', cert);
     }
+
+    makeNewRoot(cert: Certificate) : Observable<Certificate[]> {
+        return this.http.post<Certificate[]>(this.url + '/new/root', cert);
+    }
 }

@@ -5,6 +5,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.SignatureException;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.text.ParseException;
 import java.util.List;
@@ -14,18 +15,6 @@ import javax.naming.InvalidNameException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import javax.naming.InvalidNameException;
-import java.io.FileNotFoundException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.SignatureException;
-import java.security.cert.CertificateEncodingException;
-import java.security.cert.CertificateException;
-import java.text.ParseException;
-import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -61,14 +50,14 @@ public class CertificateController {
 
     /**
      * Makes a new root.jks file and adds a self-signed certificate
-     * @param: literally nothing
+     * @param: dto: DTO sent from frontend
      * @return: list of all root certificates in the database, also prints out in the console
      * the created certificate in string format
      * */
-    @PutMapping(value="/new/root")
-    public ResponseEntity<List<CertificateDTO>> makeNewRoot() {
+    @PostMapping(value="/new/root", consumes="application/json")
+    public ResponseEntity<List<CertificateDTO>> makeNewRoot(@RequestBody CertificateX500NameDTO dto) {
         try {
-            keyStoreService.generateRootKeyStore();
+            keyStoreService.generateRootKeyStore(dto);
             return new ResponseEntity<List<CertificateDTO>>(certificateService.findAll(), HttpStatus.OK);
         } catch (CertificateException e) {
             e.printStackTrace();

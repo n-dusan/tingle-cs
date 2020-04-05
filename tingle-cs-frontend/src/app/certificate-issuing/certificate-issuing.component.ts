@@ -13,6 +13,7 @@ import { EndEntityCertificate } from '../shared/end-entity-cert.model';
 export class CertificateIssuingComponent implements OnInit {
 
   isLinear = true;
+  spin = false;
   firstFormGroup: FormGroup;
   secondFormGroup: FormGroup;
   thirdFormGroup: FormGroup;
@@ -55,7 +56,7 @@ export class CertificateIssuingComponent implements OnInit {
       E: ['', Validators.required]
     });
     this.secondFormGroup = this._formBuilder.group({
-      ca: ['', Validators.required]
+      ca: ['']
     });
     this.thirdFormGroup = this._formBuilder.group({
       subjectType: ['', Validators.required],
@@ -66,10 +67,11 @@ export class CertificateIssuingComponent implements OnInit {
   }
 
   onNext1Click() {
-    console.log('next clicked')
+    console.log('Self signed: ' + this.isSelfSigned)
     console.log(this.firstFormGroup)
-    // if (isSelfSigned) { ... }
+
   }
+
 
   onCASelected(ca: Certificate) {
     this.selectedCA = ca;
@@ -80,8 +82,6 @@ export class CertificateIssuingComponent implements OnInit {
   }
 
   onDoneClick() {
-    // TO DO: cert.e ???
-
     const alias = this.thirdFormGroup.value.alias;
     const active = true;
     var role = '';
@@ -103,22 +103,55 @@ export class CertificateIssuingComponent implements OnInit {
     const cert = new Certificate(null, null, alias, active, role, cn, o, l, st, c, e, ou);
     const issuer = this.selectedCA;
     const endEntityCert: EndEntityCertificate = new EndEntityCertificate(cert, issuer);
-
-    console.log(endEntityCert)
+    
+    const newCert = new Certificate(null, null, alias, true, role, cn, o, l , st, c, e, ou);
 
     // Make request based on certificate role
+    if(role === 'ROOT'){
+      this.makeRootRequest(newCert);
+    }
     if (role === 'END_ENTITY') {
-      this.certificateService.makeNewEndEntity(endEntityCert).subscribe(
-        data => {
-          console.log('SUCCESS')
-          console.log(data);
-        },
-        error => {
-          console.log('ERROR')
-          console.log(error)
-        }
-      )
+      this.makeEndEntityRequest(endEntityCert);
     }
 
   }
+
+  // Self-Signed slider click ([checked]="isSelfSigned")
+  sliderClick() {
+    this.isSelfSigned = !this.isSelfSigned;
+    if (this.isSelfSigned) {
+      this.thirdFormGroup.value.subjectType = "CA"
+      console.log(this.thirdFormGroup.value.subjectType)
+    }
+    console.log('clicked: ' + this.isSelfSigned)
+  }
+
+
+  makeEndEntityRequest(endEntityCert: any) {
+    this.certificateService.makeNewEndEntity(endEntityCert).subscribe(
+      data => {
+        console.log('SUCCESS')
+        console.log(data);
+      },
+      error => {
+        console.log('ERROR')
+        console.log(error)
+      }
+    )
+  }
+
+  makeRootRequest(cert: Certificate) {
+    this.spin = true;
+    this.certificateService.makeNewRoot(cert).subscribe(
+      data => {
+        this.spin = false;
+        console.log(data);
+      },
+      error => {
+        this.spin = false;
+        console.log(error)
+      }
+    );
+  }
+
 }
