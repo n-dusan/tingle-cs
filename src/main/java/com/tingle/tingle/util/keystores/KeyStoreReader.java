@@ -176,9 +176,9 @@ public class KeyStoreReader {
 
                     System.out.println("alias name: " + alias);
                     System.out.println(certificate);
-                    System.out.println("=========== Private key =========== ");
-                    PrivateKey pk = readPrivateKey(keystoreFile, new String(password),alias, new String(password));
-                    System.out.println("Private key: " + Arrays.toString(Base64.encode(pk.getEncoded())));
+//                    System.out.println("=========== Private key =========== ");
+//                    PrivateKey pk = readPrivateKey(keystoreFile, new String(password),alias, new String(password));
+//                    System.out.println("Private key: " + Arrays.toString(Base64.encode(pk.getEncoded())));
 
                 //}
 
@@ -189,7 +189,7 @@ public class KeyStoreReader {
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            System.out.println("Couldn't open " + keystoreFile + ". It doesn't exist!");
         } catch (KeyStoreException e) {
             e.printStackTrace();
         } catch (IOException e) {

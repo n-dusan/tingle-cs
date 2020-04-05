@@ -37,7 +37,7 @@ public class KeyStoreWriter {
         } catch (CertificateException e) {
             e.printStackTrace();
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            System.out.println("Couldn't find " + fileName + "... Making a new one!");
         } catch (IOException e) {
             e.printStackTrace();
         }

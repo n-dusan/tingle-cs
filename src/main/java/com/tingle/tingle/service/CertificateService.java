@@ -111,9 +111,18 @@ public class CertificateService {
      * validated :)
      * */
 
-    public List<CertificateX500NameDTO> getCertificateCASubjectData() throws InvalidNameException, CertificateEncodingException {
+    public List<CertificateX500NameDTO> getCertificateCASubjectData() throws InvalidNameException, CertificateException {
 
         List<X509Certificate> cAJoinedList = findCACertificates();
+
+        //ne znam zasto mi duplira root u cA; ovo je glupav quickfix
+        cAJoinedList = cAJoinedList.stream()
+                .distinct()
+                .collect(Collectors.toList());
+
+        if(cAJoinedList == null) {
+            return null;
+        }
 
         List<CertificateX500NameDTO> cADTOList = new ArrayList<CertificateX500NameDTO>();
 
@@ -123,21 +132,21 @@ public class CertificateService {
             if(!validate(x509Certificate)) continue;
 
             String serialNumber = x509Certificate.getSerialNumber().toString();
-
-            X500Name subjName = new JcaX509CertificateHolder(x509Certificate).getSubject();
-            CertificateX500NameDTO[] x509dto = converter.convertFromX500Principals(subjName, subjName);
-
             Certificate repositoryCertificate = certificateRepository.findCertificateBySerialNumber(serialNumber);
-            //get subject data in better format with a converter
-            x509dto[1].setSerialNumber(serialNumber);
-            //Izvuci rolu sertifikata iz repository sertifikata
-
-
-            x509dto[1].setCertificateRole(repositoryCertificate.getCertificateRole());
 
             //...simulation of OCSP request ...
             OCSPResponse ocspResponse = checkCertificate(serialNumber);
-            if(ocspResponse == OCSPResponse.GOOD) {
+            if(ocspResponse == OCSPResponse.GOOD && repositoryCertificate.getCertificateRole() != Role.END_ENTITY) {
+                //set ISSUER data -> chain implementation. USE THE CHAIN LUKE. THE CHAIN IS WITHIN YOU.
+                //X509Certificate chain[] = converter.buildPath(x509Certificate, cAJoinedList);
+                //x509dto[0].setSerialNumber(chain[1].getSerialNumber().toString());
+
+                X500Name subjName = new JcaX509CertificateHolder(x509Certificate).getSubject();
+                CertificateX500NameDTO[] x509dto = converter.convertFromX500Principals(subjName, subjName);
+
+                x509dto[1].setSerialNumber(serialNumber);
+                //Izvuci rolu sertifikata iz repository sertifikata
+                x509dto[1].setCertificateRole(repositoryCertificate.getCertificateRole());
                 cADTOList.add(x509dto[1]);
             }
         }
@@ -175,7 +184,6 @@ public class CertificateService {
     }
 
 
-    /** TODO: validate certificate chain, validate extensions*/
     public void generateCACertificate(CertificateX500NameDTO dto) throws ParseException, Exception {
 
         List<X509Certificate> cAJoinedList = findCACertificates();
@@ -206,7 +214,9 @@ public class CertificateService {
                 X509Certificate cert = certificateGenerator.generateCertificate(subject, issuer, true);
 
                 //TODO: verify
-                validate(cert);
+                if(!validate(cert)) {
+                    System.out.println("I somehow managed to invalidate a perfectly valid chain.");
+                }
 
                 System.out.println("\n===== Certificate issuer=====");
                 System.out.println(cert.getIssuerX500Principal().getName());
@@ -217,12 +227,51 @@ public class CertificateService {
 
                 //save the cert in the database -> to be used when ocsp implementation occurs
                 this.certificateRepository.save(new Certificate(subject.getSerialNumber(), true, Role.INTERMEDIATE));
+                break;
 
             }
         }
     }
 
-    
+    public void generateEndEntityCertificate(CertificateX500NameDTO subjectDTO, CertificateX500NameDTO issuerDTO) throws Exception {
+    	SubjectData subject = generateSubjectData(subjectDTO);
+
+    	String keyStorePassword = "";
+    	IssuerData issuer;
+    	if(issuerDTO.getCertificateRole() == Role.ROOT) {
+    		keyStorePassword = KeyStoreConfig.ROOT_KEYSTORE_PASSWORD;
+    		issuer = this.keyStoreReader.readIssuerFromStore(KeyStoreConfig.ROOT_KEYSTORE_LOCATION, issuerDTO.getSerialNumber(), keyStorePassword.toCharArray(), keyStorePassword.toCharArray());
+    	} else if(issuerDTO.getCertificateRole() == Role.INTERMEDIATE) {
+    		keyStorePassword = KeyStoreConfig.INTERMEDIATE_KEYSTORE_PASSWORD;
+    		issuer = this.keyStoreReader.readIssuerFromStore(KeyStoreConfig.INTERMEDIATE_KEYSTORE_LOCATION, issuerDTO.getSerialNumber(), keyStorePassword.toCharArray(), keyStorePassword.toCharArray());
+    	} else {
+    		//Throw exception because End Entity is somehow trying to issue
+    		throw new Exception();
+    	}
+
+        X509Certificate cert = certificateGenerator.generateCertificate(subject, issuer, false);
+
+        // TODO: puca verifikacija: certificate does not verify with supplied key
+//        cert.verify(subject.getPublicKey());
+
+        System.out.println("\n===== Certificate issuer=====");
+        System.out.println(cert.getIssuerX500Principal().getName());
+        System.out.println("\n===== Certicate owner =====");
+        System.out.println(cert.getSubjectX500Principal().getName());
+        System.out.println("\n===== Certificate =====");
+        System.out.println("-------------------------------------------------------");
+        System.out.println(cert);
+        System.out.println("-------------------------------------------------------");
+
+        //save the cert in the keystore
+        keyStoreService.saveCertificate(cert, subject.getSerialNumber(), subject.getPrivateKey(), Role.END_ENTITY);
+
+        //save the cert in the database -> to be used when ocsp implementation occurs
+        this.certificateRepository.save(new Certificate(subject.getSerialNumber(), true, Role.END_ENTITY));
+        System.out.println("===================== SUCCESS =====================");
+    }
+
+
     private SubjectData generateSubjectData(CertificateX500NameDTO dto) throws ParseException {
 
         //based on role, generate RSA key pair length
@@ -245,7 +294,7 @@ public class CertificateService {
         if(dto.getCertificateRole() == Role.ROOT) {
             cal.add(Calendar.YEAR, CertificateConfig.ROOT_YEARS);
         } else if(dto.getCertificateRole() == Role.INTERMEDIATE) {
-            //.add(Calendar.YEAR, CertificateConfig.INTERMEDIATE_YEARS);
+            cal.add(Calendar.YEAR, CertificateConfig.INTERMEDIATE_YEARS);
         } else {
             cal.add(Calendar.YEAR, CertificateConfig.END_ENTITY_YEARS);
         }
@@ -388,9 +437,9 @@ public class CertificateService {
 
         //todo: if certificate isn't valid, recursively revoke every child
         //for now, just set the appropriate certificate to invalid
-        Certificate invalidCertificate = certificateRepository.findCertificateBySerialNumber(certificate.getSerialNumber().toString());
-        invalidCertificate.setActive(false);
-        this.certificateRepository.save(invalidCertificate);
+//        Certificate invalidCertificate = certificateRepository.findCertificateBySerialNumber(certificate.getSerialNumber().toString());
+//        invalidCertificate.setActive(false);
+//        this.certificateRepository.save(invalidCertificate);
 
         return false;
     }

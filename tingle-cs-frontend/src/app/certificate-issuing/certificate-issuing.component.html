@@ -1,43 +1,52 @@
-
 <section fxFlex="100%" fxLayout="column" fxLayoutAlign="center center" style="margin-top: 25px;">
     <h1>New Certificate</h1>
     <mat-horizontal-stepper [linear]="isLinear" fxFlex="100%" fxLayout="column" fxLayoutAlign="center center" #stepper>
         <mat-step [stepControl]="firstFormGroup">
-            <form [formGroup]="firstFormGroup" fxFlex="80%" fxLayout="column" fxLayoutAlign="center center">
+            <form [formGroup]="firstFormGroup" fxFlex="80%" fxLayout="column" fxLayoutAlign="center center"
+                (ngSubmit)="onNext1Click()">
                 <ng-template matStepLabel>Fill out Subject Data</ng-template>
                 <mat-card class="form-section" fxLayout="column">
                     <mat-card-header>
-                        <mat-card-title >Subject Data</mat-card-title>
+                        <mat-card-title>Subject Data</mat-card-title>
                     </mat-card-header>
 
                     <mat-form-field>
-                        <label for="commonName">Common Name: </label>
-                        <input id="commonName" matInput type="text" name="commonName" required>
+                        <mat-label for="commonName">Common Name: </mat-label>
+                        <input id="commonName" matInput type="text" name="commonName" required formControlName="CN">
                     </mat-form-field>
                     <mat-form-field>
-                        <label for="organizationUnit">Organization Unit: </label>
-                        <input id="organizationUnit" matInput type="text" name="organizationUnit" required>
+                        <mat-label for="organizationUnit">Organization Unit: </mat-label>
+                        <input id="organizationUnit" matInput type="text" name="organizationUnit" required
+                            formControlName="OU">
                     </mat-form-field>
                     <mat-form-field>
-                        <label for="organizationName">Organization Name: </label>
-                        <input id="organizationName" matInput type="text" name="organizationName" required>
+                        <mat-label for="organizationName">Organization Name: </mat-label>
+                        <input id="organizationName" matInput type="text" name="organizationName" required
+                            formControlName="ON">
                     </mat-form-field>
                     <mat-form-field>
-                        <label for="localityName">Locality Name: </label>
-                        <input id="localityName" matInput type="text" name="localityName" required>
+                        <mat-label for="localityName">Locality Name: </mat-label>
+                        <input id="localityName" matInput type="text" name="localityName" required formControlName="LN">
                     </mat-form-field>
                     <mat-form-field>
-                        <label for="statneName">State Name: </label>
-                        <input id="locstatneNameality" matInput type="text" name="statneName" required>
+                        <mat-label for="statneName">State Name: </mat-label>
+                        <input id="locstatneNameality" matInput type="text" name="statneName" required
+                            formControlName="ST">
                     </mat-form-field>
                     <mat-form-field>
-                        <label for="country">Country: </label>
-                        <input id="country" matInput type="text" name="country" required>
+                        <mat-label for="country">Country: </mat-label>
+                        <input id="country" matInput type="text" name="country" required formControlName="CO">
                     </mat-form-field>
+
+                    <mat-slide-toggle color="primary" [checked]="isSelfSigned" id="self-signed" disabled="false"
+                        matInput>
+                        Self-Signed
+                    </mat-slide-toggle>
 
                 </mat-card>
                 <div>
-                    <button mat-raised-button color="accent" matStepperNext>Next</button>
+                    <button mat-raised-button color="accent" type="submit" matStepperNext
+                    [disabled]="!firstFormGroup.valid">Next</button>
                 </div>
             </form>
         </mat-step>
@@ -49,52 +58,120 @@
                         <mat-card-title>Issuer Data</mat-card-title>
                     </mat-card-header>
 
-                    <mat-card-content>
-                        <mat-form-field>
-                            <label for="ca">CA: </label>
-                            <mat-select id="ca" name="ca">
-                                <!-- TO DO: ngFor through list of his CAs -->
-                                <mat-option value="lalala">
-                                    Lalala
-                                </mat-option>
-                            </mat-select>
-                        </mat-form-field>
-                    </mat-card-content>
+                    <mat-form-field>
+                        <label for="ca">CA: </label>
+                        <!-- Selected ca is in .ts file as selectedCA -->
+                        <mat-select id="ca" name="ca" formControlName="ca">
+                            <mat-option *ngFor="let ca of cas" value="ca.serialNumber" (click)="onCASelected(ca)">
+                                {{ca.certificateRole}} (Serial Number: {{ca.serialNumber}}, Alias: {{ca.alias}})
+                            </mat-option>
+                        </mat-select>
+                    </mat-form-field>
+
+
+                    <!-- Selected CA -->
+                    <section *ngIf="selectedCA">
+                        <table>
+                            <tbody>
+                                <tr>
+                                    <td>CN:</td>
+                                    <td><b>{{selectedCA.cn}}</b></td>
+                                </tr>
+                                <tr>
+                                    <td>O:</td>
+                                    <td><b>{{selectedCA.o}}</b></td>
+                                </tr>
+                                <tr>
+                                    <td>OU:</td>
+                                    <td><b>{{selectedCA.ou}}</b></td>
+                                </tr>
+                                <tr>
+                                    <td>L:</td>
+                                    <td><b>{{selectedCA.l}}</b></td>
+                                </tr>
+                                <tr>
+                                    <td>ST:</td>
+                                    <td><b>{{selectedCA.st}}</b></td>
+                                </tr>
+                                <tr>
+                                    <td>C:</td>
+                                    <td><b>{{selectedCA.c}}</b></td>
+                                </tr>
+                                <tr>
+                                    <td>E:</td>
+                                    <td><b>{{selectedCA.e}}</b></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </section>
 
                 </mat-card>
                 <div>
                     <button mat-raised-button color="primary" matStepperPrevious>Back</button>
-                    <button mat-raised-button color="accent" matStepperNext>Next</button>
+                    <button mat-raised-button color="accent" matStepperNext [disabled]="!selectedCA">Next</button>
                 </div>
             </form>
+
         </mat-step>
         <mat-step>
-            <form [formGroup]="thirdFormGroup" fxFlex="100%" fxLayout="column" fxLayoutAlign="center center">
+            <form [formGroup]="thirdFormGroup" fxFlex="100%" fxLayout="column" fxLayoutAlign="center center"
+                (submit)="onDoneClick()">
                 <ng-template matStepLabel>Fill out Other Info</ng-template>
                 <mat-card class="form-section" fxLayout="column">
                     <mat-card-header>
                         <mat-card-title>Other Info</mat-card-title>
                     </mat-card-header>
 
-                    <mat-card-content>
-                        <mat-form-field>
-                            <label for="ca">CA: </label>
-                            <mat-select id="ca" name="ca">
-                                <!-- TO DO: ngFor through list of his CAs -->
-                                <mat-option value="lalala">
-                                    Lalala
-                                </mat-option>
-                            </mat-select>
-                        </mat-form-field>
-                    </mat-card-content>
+                    <h3>Extensions:</h3>
+                    Key Usage:
+                    <section fxFlex fxLayout="row" fxLayoutAlign="center center">
+                        <div>
+                            <mat-checkbox [checked]="digitalSignature">Digital Signature</mat-checkbox> <br>
+                            <mat-checkbox [checked]="keyEncipherment">Key Encipherment</mat-checkbox> <br>
+                            <mat-checkbox [checked]="nonRepudiation">Non Repudiation</mat-checkbox> <br>
+                            <mat-checkbox [checked]="dataEncipherment">Data Encipherment</mat-checkbox> <br>
+                            <mat-checkbox [checked]="keyAgreement">Key Agreement</mat-checkbox> <br>
+                        </div>
+                        <div style="width: 15px;"></div>
+                        <div>
+                            <mat-checkbox [checked]="keyCertSign">Key Cert Sign</mat-checkbox> <br>
+                            <mat-checkbox [checked]="crlSign">cRLSign</mat-checkbox> <br>
+                            <mat-checkbox [checked]="encipherOnly">Encipher Only</mat-checkbox> <br>
+                            <mat-checkbox [checked]="decipherOnly">Decipher Only</mat-checkbox> <br>
+                        </div>
+
+                    </section>
+                    <br>
+                    <mat-form-field>
+                        <!-- BASIC CONSTRAINTS -->
+                        <mat-label>Subject Type:</mat-label>
+                        <mat-select id="subject-type" name="subject-type" formControlName="subjectType">
+                            <mat-option value="CA" (click)="onSubjectTypeClick('CA')">
+                                CA
+                            </mat-option>
+                            <mat-option value="end-entity" (click)="onSubjectTypeClick('end-entity')">
+                                End-Entity
+                            </mat-option>
+                        </mat-select>
+                    </mat-form-field>
+
+                    <mat-form-field>
+                        <mat-label>Password:</mat-label>
+                        <input id="password" matInput type="password" name="password" formControlName="password">
+                    </mat-form-field>
+
+                    <mat-form-field>
+                        <mat-label>Alias:</mat-label>
+                        <input id="alias" matInput type="text" name="alias" formControlName="alias">
+                    </mat-form-field>
 
                 </mat-card>
                 <div>
                     <button mat-raised-button color="primary" matStepperPrevious>Back</button>
-                    <button mat-raised-button color="accent" >Done</button>
+                    <button mat-raised-button color="accent" type="submit" [disabled]="!thirdFormGroup.valid">Done</button>
                 </div>
             </form>
-            
+
         </mat-step>
     </mat-horizontal-stepper>
 </section>
