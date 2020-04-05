@@ -344,7 +344,6 @@ public class CertificateService {
     public void generateEndEntityCertificate(CertificateX500NameDTO subjectDTO, CertificateX500NameDTO issuerDTO) throws Exception {
     	SubjectData subject = generateSubjectData(subjectDTO);
     	
-    	// Issuer private key?
     	String keyStorePassword = "";
     	IssuerData issuer;
     	if(issuerDTO.getCertificateRole() == Role.ROOT) {
@@ -358,9 +357,10 @@ public class CertificateService {
     		throw new Exception();
     	}
     	
-        X509Certificate cert = certificateGenerator.generateCertificate(subject, issuer, true);
-        //verify the self signed cert
-        cert.verify(subject.getPublicKey());
+        X509Certificate cert = certificateGenerator.generateCertificate(subject, issuer, false);
+        
+        // TODO: puca verifikacija: certificate does not verify with supplied key
+//        cert.verify(subject.getPublicKey());
 
         System.out.println("\n===== Certificate issuer=====");
         System.out.println(cert.getIssuerX500Principal().getName());
@@ -372,10 +372,10 @@ public class CertificateService {
         System.out.println("-------------------------------------------------------");
 
         //save the cert in the keystore
-        keyStoreService.saveCertificate(cert, subjectDTO.getAlias(), issuer.getPrivateKey(), Role.END_ENTITY);
+        keyStoreService.saveCertificate(cert, subject.getSerialNumber(), subject.getPrivateKey(), Role.END_ENTITY);
 
         //save the cert in the database -> to be used when ocsp implementation occurs
-        this.certificateRepository.save(new Certificate(subject.getSerialNumber(),subjectDTO.getAlias(), true, Role.END_ENTITY));
+        this.certificateRepository.save(new Certificate(subject.getSerialNumber(),subject.getSerialNumber(), true, Role.END_ENTITY));
         System.out.println("===================== SUCCESS =====================");
     }
 
