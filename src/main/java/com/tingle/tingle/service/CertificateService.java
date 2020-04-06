@@ -167,8 +167,8 @@ public class CertificateService {
         SubjectData subject = generateSubjectData(dto);
         IssuerData issuer = generateIssuerData(dto, subject.getPrivateKey());
 
-        boolean isCertificateAuthority = dto.getExtensions().getBasicConstraints().isCertificateAuthority();
-        X509Certificate cert = certificateGenerator.generateCertificate(subject, issuer, isCertificateAuthority);
+        // changed the last param from isCA to extensions
+        X509Certificate cert = certificateGenerator.generateCertificate(subject, issuer, dto.getExtensions());
 
 
         System.out.println("\n===== Certificate issuer=====");
@@ -212,7 +212,7 @@ public class CertificateService {
 
                 SubjectData subject = generateSubjectData(dto);
 
-                X509Certificate cert = certificateGenerator.generateCertificate(subject, issuer, true);
+                X509Certificate cert = certificateGenerator.generateCertificate(subject, issuer, dto.getExtensions());
 
                 //TODO: verify
                 if(!validate(cert)) {
@@ -250,7 +250,7 @@ public class CertificateService {
     		throw new Exception();
     	}
 
-        X509Certificate cert = certificateGenerator.generateCertificate(subject, issuer, false);
+        X509Certificate cert = certificateGenerator.generateCertificate(subject, issuer, subjectDTO.getExtensions());
 
         // TODO: puca verifikacija: certificate does not verify with supplied key
 //        cert.verify(subject.getPublicKey());
