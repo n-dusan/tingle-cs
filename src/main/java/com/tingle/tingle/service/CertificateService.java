@@ -19,9 +19,16 @@ import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.tingle.tingle.domain.Certificate;
-
+import java.util.Base64;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigInteger;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
 import java.security.*;
 import java.security.cert.*;
 import java.text.ParseException;
@@ -442,6 +449,52 @@ public class CertificateService {
 //        this.certificateRepository.save(invalidCertificate);
 
         return false;
+    }
+    
+    public void downloadCertificate(String serialNumber){
+    	List<CertificateDTO> list = findAll();
+    	for(CertificateDTO c : list) {
+    		if(c.getSerialNumber().equals(serialNumber)) {
+    			try {
+    				if(c.getCertificateRole() == Role.ROOT) {
+    					List<X509Certificate> listCert = keyStoreService.findKeyStoreCertificates(Role.ROOT);
+    					for(X509Certificate cert : listCert) {
+    						if(cert.getSerialNumber().toString().equals(c.getSerialNumber())) {
+    							FileOutputStream os = new FileOutputStream(c.getCertificateRole() + "-" + c.getAlias() + ".cer");
+    							os.write("--BEGIN CERTIFICATE--\n".getBytes("US-ASCII"));
+    							os.write(Base64.getEncoder().encode(cert.getEncoded()));
+    							os.write("--END CERTIFICATE--\n".getBytes("US-ASCII"));
+    							os.close();
+    						}
+    					}
+    				}else if(c.getCertificateRole() == Role.INTERMEDIATE) {
+    					List<X509Certificate> listCert = keyStoreService.findKeyStoreCertificates(Role.INTERMEDIATE);
+    					for(X509Certificate cert : listCert) {
+    						if(cert.getSerialNumber().toString().equals(c.getSerialNumber())) {
+    							FileOutputStream os = new FileOutputStream(c.getCertificateRole() + "-" + c.getAlias() + ".cer");
+    							os.write("--BEGIN CERTIFICATE--\n".getBytes("US-ASCII"));
+    							os.write(Base64.getEncoder().encode(cert.getEncoded()));
+    							os.write("--END CERTIFICATE--\n".getBytes("US-ASCII"));
+    							os.close();
+    						}
+    					}
+    				}else {
+    					List<X509Certificate> listCert = keyStoreService.findKeyStoreCertificates(Role.END_ENTITY);
+    					for(X509Certificate cert : listCert) {
+    						if(cert.getSerialNumber().toString().equals(c.getSerialNumber())) {
+    							FileOutputStream os = new FileOutputStream(c.getCertificateRole() + "-" + c.getAlias() + ".cer");
+    							os.write("--BEGIN CERTIFICATE--\n".getBytes("US-ASCII"));
+    							os.write(Base64.getEncoder().encode(cert.getEncoded()));
+    							os.write("--END CERTIFICATE--\n".getBytes("US-ASCII"));
+    							os.close();
+    						}
+    					}
+    				}
+    			}catch(Exception e) {
+    				e.printStackTrace();
+    			}
+    		}
+    	}
     }
 
 }

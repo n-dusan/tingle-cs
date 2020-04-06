@@ -16,6 +16,8 @@ export class AllCertificatesItemComponent implements OnInit, OnDestroy {
   
   selectedCertificate: Certificate[];
   private subscription: Subscription;
+  serialNumber: any;
+  downloadCert = false;
 
   constructor(private certificateService: CertificatesService, private dialog: MatDialog) { }
 
@@ -37,6 +39,13 @@ export class AllCertificatesItemComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.subscription.unsubscribe();
+  }
+
+  downloadCertificate(serialNumber: String){
+    this.certificateService.downloadCertificate(serialNumber).subscribe(data=>{
+      this.downloadCert = true;
+    })
+
   }
 
 }

@@ -1,4 +1,4 @@
-import { BrowserModule } from '@angular/platform-browser';
+  import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 
 import { AppRoutingModule } from './app-routing.module';
@@ -35,6 +35,7 @@ import { AllCertificatesItemComponent } from './all-certificates/all-certificate
 import { HttpClientModule } from '@angular/common/http';
 import { CertificateIssuingComponent } from './certificate-issuing/certificate-issuing.component';
 import { RevokeDialogComponent } from './all-certificates/revoke-dialog/revoke-dialog.component';
+
 
 
 

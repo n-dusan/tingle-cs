@@ -54,4 +54,8 @@ export class CertificatesService {
     revokeCertificate(certificate: Certificate) {
        // return this.http.put<Certificate[]>(this.url+'')
     }
+    
+    downloadCertificate(serialNumber: String) : Observable<Object>{
+        return this.http.get(`${this.url}/downloadCertificate/${serialNumber}`);
+    }
 }
