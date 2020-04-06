@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { Certificate } from '../shared/certificate.model';
-import { Observable } from 'rxjs';
 import { CertificatesService } from '../all-certificates/certificates.service';
 import { EndEntityCertificate } from '../shared/end-entity-cert.model';
 
@@ -14,6 +13,7 @@ export class CertificateIssuingComponent implements OnInit {
 
   isLinear = true;
   spin = false;
+  success = false;
   firstFormGroup: FormGroup;
   secondFormGroup: FormGroup;
   thirdFormGroup: FormGroup;
@@ -136,12 +136,11 @@ export class CertificateIssuingComponent implements OnInit {
     this.certificateService.makeNewEndEntity(endEntityCert).subscribe(
       data => {
         this.spin = false;
-        console.log('SUCCESS')
+        this.success = true;
         console.log(data);
       },
       error => {
         this.spin = false;
-        console.log('ERROR')
         console.log(error)
       }
     )
@@ -152,6 +151,7 @@ export class CertificateIssuingComponent implements OnInit {
     this.certificateService.makeNewRoot(cert).subscribe(
       data => {
         this.spin = false;
+        this.success = true;
         console.log(data);
       },
       error => {
@@ -166,6 +166,7 @@ export class CertificateIssuingComponent implements OnInit {
     this.certificateService.makeNewCA(cert).subscribe(
       data => {
         this.spin = false;
+        this.success = true;
         console.log(data);
       },
       error => {

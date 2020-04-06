@@ -1,4 +1,4 @@
-<section fxFlex="100%" fxLayout="column" fxLayoutAlign="center center" style="margin-top: 25px;" *ngIf="!spin">
+<section fxFlex="100%" fxLayout="column" fxLayoutAlign="center center" style="margin-top: 25px;" *ngIf="!spin && !success">
     <h1>New Certificate</h1>
     <mat-horizontal-stepper [linear]="isLinear" fxFlex="100%" fxLayout="column" fxLayoutAlign="center center" #stepper>
         <mat-step [stepControl]="firstFormGroup">
@@ -73,7 +73,7 @@
                     </mat-form-field>
 
                     <div *ngIf="isSelfSigned">
-                        <h1>You're about to generate a <i>self-signed</i> certificate. Proceed?</h1>
+                        <h2>You're about to generate a <i>self-signed</i> certificate. <br> Proceed?</h2>
                     </div>
 
                     <!-- Selected CA -->
@@ -201,4 +201,11 @@
     </mat-progress-spinner>
     <h1 style="margin-top: 15px">Just a little moment...</h1>
     <h3>Your request is being processed.</h3>
+</div>
+
+<div *ngIf="success && !spin" fxFlex="100%" fxLayout="column" fxLayoutAlign="center center" 
+style="margin-top:25px; text-align: center;">
+    <h1>Congratulations!</h1>
+    <h3>You have successfully issued a Certificate!</h3>
+    <h4>Back to <a routerLink="../home-page">Home page</a></h4>
 </div>
