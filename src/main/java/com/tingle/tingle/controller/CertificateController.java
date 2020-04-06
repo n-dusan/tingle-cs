@@ -155,7 +155,6 @@ public class CertificateController {
 
         return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
     
     @GetMapping(value = "/downloadCertificate/{serialNumber}", produces = "application/json")
     	public ResponseEntity<CertificateDTO> downloadCert(@PathVariable String serialNumber){
