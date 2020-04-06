@@ -1,34 +1,41 @@
 <mat-card class="matcard" fxFlex="80%">
-    <mat-card-header>
-      <mat-card-title>Certificate details - {{ selectedCertificate[1].serialNumber }}</mat-card-title>
-    </mat-card-header>
-    <mat-card-content>
-        <b> Issuer </b>
-        <br/>
-        <hr/>
-        CN: <b> {{selectedCertificate[0].cn}} </b> <br/>
-        C: <b> {{selectedCertificate[0].c}} </b> <br/>
-        O: <b> {{selectedCertificate[0].o}} </b> <br/>
-        OU: <b> {{selectedCertificate[0].ou}} </b> <br/>
-        ST: <b> {{selectedCertificate[0].st }}</b> <br/>
-        L: <b> {{selectedCertificate[0].l }} </b> <br/>
-        E: <b> {{selectedCertificate[0].e }} </b> <br/>
-      <hr/>
-        <b> Subject </b>
-        <br/>
-        <hr/>
-        CN:  <b> {{selectedCertificate[1].cn}} </b> <br/>
-        C:  <b>{{selectedCertificate[1].c}}</b> <br/>
-        O:  <b>{{selectedCertificate[1].o}} </b><br/>
-        OU: <b> {{selectedCertificate[1].ou}} </b><br/>
-        ST: <b> {{selectedCertificate[1].st }} </b> <br/>
-        L: <b> {{selectedCertificate[1].l }}</b> <br/>
-        E: <b> {{selectedCertificate[1].e }} </b> <br/>
-        Certificate authority: <b> {{selectedCertificate[1].certificateRole}} </b> <br/>
-      
-    </mat-card-content>
-    <mat-card-actions>
-      <button mat-raised-button color="warn" (click)="onRevoke()">Revoke</button>
-      <button mat-raised-button color="primary">Download</button>
-    </mat-card-actions>
-  </mat-card>
+  <mat-card-header>
+    <mat-card-title>Certificate details - {{ selectedCertificate[1].serialNumber }}</mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    <b> Issuer </b>
+    <br />
+    <hr />
+    CN: <b> {{selectedCertificate[0].cn}} </b> <br />
+    C: <b> {{selectedCertificate[0].c}} </b> <br />
+    O: <b> {{selectedCertificate[0].o}} </b> <br />
+    OU: <b> {{selectedCertificate[0].ou}} </b> <br />
+    ST: <b> {{selectedCertificate[0].st }}</b> <br />
+    L: <b> {{selectedCertificate[0].l }} </b> <br />
+    E: <b> {{selectedCertificate[0].e }} </b> <br />
+    <hr />
+    <b> Subject </b>
+    <br />
+    <hr />
+    CN: <b> {{selectedCertificate[1].cn}} </b> <br />
+    C: <b>{{selectedCertificate[1].c}}</b> <br />
+    O: <b>{{selectedCertificate[1].o}} </b><br />
+    OU: <b> {{selectedCertificate[1].ou}} </b><br />
+    ST: <b> {{selectedCertificate[1].st }} </b> <br />
+    L: <b> {{selectedCertificate[1].l }}</b> <br />
+    E: <b> {{selectedCertificate[1].e }} </b> <br />
+    Certificate authority: <b> {{selectedCertificate[1].certificateRole}} </b> <br />
+
+  </mat-card-content>
+  <mat-card-actions>
+    <button mat-raised-button color="warn" (click)="onRevoke()">Revoke</button>
+    <button mat-raised-button color="primary"
+      (click)="downloadCertificate(selectedCertificate[1].serialNumber)">Download</button>
+  </mat-card-actions>
+
+  <div class="row" [hidden]="!downloadCert">
+    <div class="alert alert-success alert-dismissible">
+      <strong>Success!</strong> You have successfully downloaded the certificate.
+    </div>
+  </div>
+</mat-card>
