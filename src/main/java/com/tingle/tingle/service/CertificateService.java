@@ -460,7 +460,7 @@ public class CertificateService {
     					List<X509Certificate> listCert = keyStoreService.findKeyStoreCertificates(Role.ROOT);
     					for(X509Certificate cert : listCert) {
     						if(cert.getSerialNumber().toString().equals(c.getSerialNumber())) {
-    							FileOutputStream os = new FileOutputStream(c.getCertificateRole() + "-" + c.getAlias() + ".cer");
+    							FileOutputStream os = new FileOutputStream(c.getCertificateRole() + ".cer");
     							os.write("--BEGIN CERTIFICATE--\n".getBytes("US-ASCII"));
     							os.write(Base64.getEncoder().encode(cert.getEncoded()));
     							os.write("--END CERTIFICATE--\n".getBytes("US-ASCII"));
@@ -471,7 +471,7 @@ public class CertificateService {
     					List<X509Certificate> listCert = keyStoreService.findKeyStoreCertificates(Role.INTERMEDIATE);
     					for(X509Certificate cert : listCert) {
     						if(cert.getSerialNumber().toString().equals(c.getSerialNumber())) {
-    							FileOutputStream os = new FileOutputStream(c.getCertificateRole() + "-" + c.getAlias() + ".cer");
+    							FileOutputStream os = new FileOutputStream(c.getCertificateRole() + ".cer");
     							os.write("--BEGIN CERTIFICATE--\n".getBytes("US-ASCII"));
     							os.write(Base64.getEncoder().encode(cert.getEncoded()));
     							os.write("--END CERTIFICATE--\n".getBytes("US-ASCII"));
@@ -482,7 +482,7 @@ public class CertificateService {
     					List<X509Certificate> listCert = keyStoreService.findKeyStoreCertificates(Role.END_ENTITY);
     					for(X509Certificate cert : listCert) {
     						if(cert.getSerialNumber().toString().equals(c.getSerialNumber())) {
-    							FileOutputStream os = new FileOutputStream(c.getCertificateRole() + "-" + c.getAlias() + ".cer");
+    							FileOutputStream os = new FileOutputStream(c.getCertificateRole() + ".cer");
     							os.write("--BEGIN CERTIFICATE--\n".getBytes("US-ASCII"));
     							os.write(Base64.getEncoder().encode(cert.getEncoded()));
     							os.write("--END CERTIFICATE--\n".getBytes("US-ASCII"));
