@@ -167,7 +167,8 @@ public class CertificateService {
         SubjectData subject = generateSubjectData(dto);
         IssuerData issuer = generateIssuerData(dto, subject.getPrivateKey());
 
-        X509Certificate cert = certificateGenerator.generateCertificate(subject, issuer, true);
+        boolean isCertificateAuthority = dto.getExtensions().getBasicConstraints().isCertificateAuthority();
+        X509Certificate cert = certificateGenerator.generateCertificate(subject, issuer, isCertificateAuthority);
 
 
         System.out.println("\n===== Certificate issuer=====");
