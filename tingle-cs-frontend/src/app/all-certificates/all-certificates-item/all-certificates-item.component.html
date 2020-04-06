@@ -1,29 +1,37 @@
 <mat-card class="matcard" fxFlex="80%">
-    <mat-card-header>
-      <mat-card-title>Certificate details</mat-card-title>
-    </mat-card-header>
-    <mat-card-content>
-      <p>
-        <b> Issuer </b>
-        <br/>
-        CN: {{selectedCertificate[0].cn}} <br/>
-        C: {{selectedCertificate[0].c}} <br/>
-        O: {{selectedCertificate[0].o}} <br/>
-        OU: {{selectedCertificate[0].ou}} <br/>
-      </p>
-      <hr/>
-      <p>
-        <b> Subject </b>
-        <br/>
-        CN: {{selectedCertificate[1].cn}} <br/>
-        C: {{selectedCertificate[1].c}} <br/>
-        O: {{selectedCertificate[1].o}} <br/>
-        OU: {{selectedCertificate[1].ou}} <br/>
-        Certificate authority: {{selectedCertificate[1].certificateRole}} <br/>
-      </p>
-    </mat-card-content>
-    <mat-card-actions>
-      <button mat-raised-button color="warn">Revoke</button>
-      <button mat-raised-button color="primary">Download</button>
-    </mat-card-actions>
-  </mat-card>
+  <mat-card-header>
+    <mat-card-title>Certificate details</mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    <p>
+      <b> Issuer </b>
+      <br />
+      CN: {{selectedCertificate[0].cn}} <br />
+      C: {{selectedCertificate[0].c}} <br />
+      O: {{selectedCertificate[0].o}} <br />
+      OU: {{selectedCertificate[0].ou}} <br />
+    </p>
+    <hr />
+    <p>
+      <b> Subject </b>
+      <br />
+      CN: {{selectedCertificate[1].cn}} <br />
+      C: {{selectedCertificate[1].c}} <br />
+      O: {{selectedCertificate[1].o}} <br />
+      OU: {{selectedCertificate[1].ou}} <br />
+      Certificate authority: {{selectedCertificate[1].certificateRole}} <br />
+    </p>
+  </mat-card-content>
+  <mat-card-actions>
+    <button mat-raised-button color="warn">Revoke</button>
+    <button mat-raised-button color="primary"
+      (click)="downloadCertificate(selectedCertificate[1].serialNumber)">Download</button>
+  </mat-card-actions>
+
+  <div class="row" [hidden]="!downloadCert">         
+      <div class="alert alert-success alert-dismissible">
+        <strong>Success!</strong> You have successfully downloaded the certificate.
+      </div> 
+</div>     
+
+</mat-card>

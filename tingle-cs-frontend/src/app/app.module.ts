@@ -1,4 +1,4 @@
-import { BrowserModule } from '@angular/platform-browser';
+  import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 
 import { AppRoutingModule } from './app-routing.module';
@@ -31,6 +31,7 @@ import { AllCertificatesListComponent } from './all-certificates/all-certificate
 import { AllCertificatesItemComponent } from './all-certificates/all-certificates-item/all-certificates-item.component';
 import { HttpClientModule } from '@angular/common/http';
 import { CertificateIssuingComponent } from './certificate-issuing/certificate-issuing.component';
+
 
 
 @NgModule({

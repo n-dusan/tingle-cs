@@ -41,4 +41,8 @@ export class CertificatesService {
     makeNewEndEntity(cert : EndEntityCertificate) : Observable<Certificate>{
         return this.http.post<Certificate>(this.url + '/new/end-entity', cert);
     }
+
+    downloadCertificate(serialNumber: String) : Observable<Object>{
+        return this.http.get(`${this.url}/downloadCertificate/${serialNumber}`);
+    }
 }
