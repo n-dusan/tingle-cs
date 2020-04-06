@@ -1,0 +1,64 @@
+<h2 mat-dialog-title>Certificate revokation - {{selectedCertificate[1].serialNumber}} </h2>
+<mat-dialog-content class="mat-typography">
+  <h3>Are you sure?</h3>
+  <p> Please review certificate details again before revoking. Revokation <i>cannot</i> be undone. 
+    <br/> Revoking a CA may  lead to <i>chain</i> revokation. </p>
+
+  <h3>Details</h3>
+  Common name:  <b> {{selectedCertificate[1].cn}} </b> <br/>
+  Organization:  <b>{{selectedCertificate[1].o}} </b><br/>
+  Organizational unit: <b> {{selectedCertificate[1].ou}} </b><br/>
+  Country:  <b>{{selectedCertificate[1].c}}</b> <br/>
+  State: <b> {{selectedCertificate[1].st }} </b> <br/>
+  Town: <b> {{selectedCertificate[1].l }}</b> <br/>
+  Email: <b> {{selectedCertificate[1].e }} </b> <br/>
+  Basic constraints: <b> {{selectedCertificate[1].certificateRole}} </b>
+  <br/>
+  <hr/>
+  <h3>Specify revokation reason</h3>
+
+  <mat-form-field>
+    <mat-label>Revokation reason: </mat-label>
+    <mat-select [(value)]="selected">
+      <mat-option value="AA_COMPROMISE">AA_COMPROMISE</mat-option>
+      <mat-option value="AFFILIATION_CHANGED">AFFILIATION_CHANGED</mat-option>
+      <mat-option value="CA_COMPROMISE">CA_COMPROMISE</mat-option>
+      <mat-option value="CERTIFICATE_HOLD">CERTIFICATE_HOLD</mat-option>
+      <mat-option value="CESSATION_OF_OPERATION">CESSATION_OF_OPERATION</mat-option>
+      <mat-option value="KEY_COMPROMISE">KEY_COMPROMISE</mat-option>
+      <mat-option value="PRIVILEGE_WITHDRAWN">PRIVILEGE_WITHDRAWN</mat-option>
+      <mat-option value="REMOVE_FROM_CRL">REMOVE_FROM_CRL</mat-option>
+      <mat-option value="UPERSEDED">UPERSEDED</mat-option>
+      <mat-option value="UNSPECIFIED">UNSPECIFIED</mat-option>
+      <mat-option value="UNUSED">UNUSED</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <br/>
+  - <i> AA_COMPROMISE </i> - This reason indicates that it is known or suspected that the certificate subject's private key has been compromised.
+  <br/>
+  - <i> AFFILIATION_CHANGED </i> - This reason indicates that the subject's name or other information has changed.
+  <br/>
+  - <i> CA_COMPROMISE </i> - This reason indicates that it is known or suspected that the certificate subject's private key has been compromised.
+  <br/>
+  - <i> CERTIFICATE_HOLD </i> - This reason indicates that the certificate has been put on hold.
+  <br/>
+  - <i> CESSATION_OF_OPERATION </i> - This reason indicates that the certificate is no longer needed.
+  <br/>
+  - <i> KEY_COMPROMISE </i> - This reason indicates that it is known or suspected that the certificate subject's private key has been compromised.
+  <br/>
+  - <i> PRIVILEGE_WITHDRAWN </i> - This reason indicates that the privileges granted to the subject of the certificate have been withdrawn.
+  <br/>
+  - <i> REMOVE_FROM_CRL </i> - This reason indicates that the certificate was previously on hold and should be removed from the CRL.
+  <br/>
+  - <i> UPERSEDED </i> - This reason indicates that the certificate has been superseded.
+  <br/>
+  - <i> UNSPECIFIED </i> - This reason indicates that it is unspecified as to why the certificate has been revoked.
+  <br/>
+  - <i> UNUSED </i> - Unused reason.
+
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Cancel</button>
+  <button mat-button [mat-dialog-close]="true" cdkFocusInitial color="warn" (click)="onRealRevoke()">Revoke</button>
+</mat-dialog-actions>

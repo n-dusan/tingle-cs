@@ -49,4 +49,9 @@ export class CertificatesService {
     makeNewCA(cert: Certificate) : Observable<Certificate[]> {
         return this.http.post<Certificate[]>(this.url + '/new/ca', cert);
     }
+
+
+    revokeCertificate(certificate: Certificate) {
+       // return this.http.put<Certificate[]>(this.url+'')
+    }
 }

@@ -1,0 +1,15 @@
+package com.tingle.tingle.domain.enums;
+
+public enum CRLReason {
+    AA_COMPROMISE,
+    AFFILIATION_CHANGED,
+    CA_COMPROMISE,
+    CERTIFICATE_HOLD,
+    CESSATION_OF_OPERATION,
+    KEY_COMPROMISE,
+    PRIVILEGE_WITHDRAWN,
+    REMOVE_FROM_CRL,
+    SUPERSEDED,
+    UNSPECIFIED,
+    UNUSED
+}

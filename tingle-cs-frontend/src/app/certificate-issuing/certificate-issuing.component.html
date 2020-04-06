@@ -44,7 +44,7 @@
 
 
                     <mat-slide-toggle color="primary" id="self-signed" (click)="sliderClick()" matInput>
-                        Self-Signed
+                        Self-signed
                     </mat-slide-toggle>
 
                 </mat-card>
@@ -73,7 +73,7 @@
                     </mat-form-field>
 
                     <div *ngIf="isSelfSigned">
-                        <h1>This certificate is Self-Signed.</h1>
+                        <h1>You're about to generate a <i>self-signed</i> certificate. Proceed?</h1>
                     </div>
 
                     <!-- Selected CA -->
@@ -115,6 +115,7 @@
                 </mat-card>
                 <div>
                     <button mat-raised-button color="primary" matStepperPrevious>Back</button>
+                    &nbsp;
                     <button mat-raised-button color="accent" matStepperNext
                         [disabled]="!selectedCA && !isSelfSigned">Next</button>
                 </div>
@@ -127,7 +128,7 @@
                 <ng-template matStepLabel>Fill out Other Info</ng-template>
                 <mat-card class="form-section" fxLayout="column">
                     <mat-card-header>
-                        <mat-card-title>Other Info</mat-card-title>
+                        <mat-card-title>Other information</mat-card-title>
                     </mat-card-header>
 
                     <h3>Extensions:</h3>
@@ -152,7 +153,7 @@
                     <br>
                     <mat-form-field *ngIf="!isSelfSigned">
                         <!-- BASIC CONSTRAINTS -->
-                        <mat-label>Subject Type:</mat-label>
+                        <mat-label>Basic constraints - Subject type:</mat-label>
                         <mat-select id="subject-type" name="subject-type" formControlName="subjectType">
                             <mat-option value="CA" (click)="onSubjectTypeClick('CA')">
                                 CA
@@ -166,7 +167,7 @@
                     <mat-form-field *ngIf="isSelfSigned">
                         <!-- BASIC CONSTRAINTS -->
                         <!-- If the certificate is Self-Signed, its type is CA by default -->
-                        <mat-label>Subject Type:</mat-label>
+                        <mat-label>Basic constraints - Subject type:</mat-label>
                         <input type="text" matInput value="CA" disabled>
                     </mat-form-field>
 
@@ -184,6 +185,7 @@
                 <div>
                     <button mat-raised-button color="primary" matStepperPrevious>Back</button>
                     <!-- [disabled]="!thirdFormGroup.valid" -->
+                    &nbsp;
                     <button mat-raised-button color="accent" type="submit">Done</button>
                 </div>
             </form>
@@ -197,6 +199,6 @@
 <div *ngIf="spin" fxFlex="100%" fxLayout="column" fxLayoutAlign="center center" style="margin-top:25px">
     <mat-progress-spinner color="primary" mode="indeterminate">
     </mat-progress-spinner>
-    <h1 style="margin-top: 15px">Just a Moment...</h1>
+    <h1 style="margin-top: 15px">Just a little moment...</h1>
     <h3>Your request is being processed.</h3>
 </div>

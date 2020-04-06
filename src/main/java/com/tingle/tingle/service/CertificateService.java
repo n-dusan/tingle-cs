@@ -408,7 +408,7 @@ public class CertificateService {
         List<X509Certificate> cAJoined = findCACertificates();
 
         try {
-            X509Certificate[] chain = converter.buildPath(certificate, cAJoined);
+            X509Certificate[] chain = CConverter.buildPath(certificate, cAJoined);
 
                 try {
                     //proverava da li je istekao sertifikat

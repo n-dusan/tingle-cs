@@ -21,6 +21,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatTableModule } from '@angular/material/table';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatDialogModule } from '@angular/material/dialog';
 
 import { LoginComponent } from './auth/login/login.component';
 import { HeaderComponent } from './navigation/header/header.component';
@@ -33,6 +34,8 @@ import { AllCertificatesListComponent } from './all-certificates/all-certificate
 import { AllCertificatesItemComponent } from './all-certificates/all-certificates-item/all-certificates-item.component';
 import { HttpClientModule } from '@angular/common/http';
 import { CertificateIssuingComponent } from './certificate-issuing/certificate-issuing.component';
+import { RevokeDialogComponent } from './all-certificates/revoke-dialog/revoke-dialog.component';
+
 
 
 @NgModule({
@@ -47,7 +50,8 @@ import { CertificateIssuingComponent } from './certificate-issuing/certificate-i
     AllCertificatesComponent,
     AllCertificatesListComponent,
     AllCertificatesItemComponent,
-    CertificateIssuingComponent
+    CertificateIssuingComponent,
+    RevokeDialogComponent
   ],
   imports: [
     BrowserModule,
@@ -70,7 +74,8 @@ import { CertificateIssuingComponent } from './certificate-issuing/certificate-i
     MatCheckboxModule,
     MatDividerModule,
     MatTableModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatDialogModule
   ],
   providers: [],
   bootstrap: [AppComponent]

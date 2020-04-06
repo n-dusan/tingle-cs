@@ -12,5 +12,6 @@ export class Certificate {
         public st?: string,
         public c?: string,
         public e?: string,
-        public ou?: string) {}
+        public ou?: string,
+        public revokationReason?: string) {}
 }

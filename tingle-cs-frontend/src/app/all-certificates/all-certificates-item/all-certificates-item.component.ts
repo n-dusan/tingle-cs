@@ -3,6 +3,10 @@ import { Certificate } from '../../shared/certificate.model';
 import { Subscription } from 'rxjs';
 import { CertificatesService } from '../certificates.service';
 
+import {MatDialog} from '@angular/material/dialog';
+
+import { RevokeDialogComponent } from '../revoke-dialog/revoke-dialog.component';
+
 @Component({
   selector: 'app-all-certificates-item',
   templateUrl: './all-certificates-item.component.html',
@@ -13,7 +17,17 @@ export class AllCertificatesItemComponent implements OnInit, OnDestroy {
   selectedCertificate: Certificate[];
   private subscription: Subscription;
 
-  constructor(private certificateService: CertificatesService) { }
+  constructor(private certificateService: CertificatesService, private dialog: MatDialog) { }
+
+
+  onRevoke() {
+    const dialogRef = this.dialog.open(RevokeDialogComponent);
+
+    dialogRef.afterClosed().subscribe(result => {
+      console.log(`Dialog result: ${result}`);
+    });
+  }
+
 
   ngOnInit(): void {
     this.subscription = this.certificateService.selectedCertificate.subscribe((data: Certificate[]) => {
