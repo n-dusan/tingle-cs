@@ -1,5 +1,6 @@
 package com.tingle.tingle.domain;
 
+import com.tingle.tingle.domain.enums.CRLReason;
 import com.tingle.tingle.domain.enums.Role;
 
 import javax.persistence.*;
@@ -23,6 +24,11 @@ public class Certificate implements Serializable {
     @Enumerated(EnumType.STRING)
     @Column(name="certificateRole", nullable = false)
     private Role certificateRole;
+
+
+    @Enumerated(EnumType.STRING)
+    @Column(name="revokeReason")
+    private CRLReason revokeReason;
 
 
     public Certificate() {}
@@ -65,6 +71,11 @@ public class Certificate implements Serializable {
     public void setActive(boolean active) {
         this.active = active;
     }
+
+
+    public CRLReason getRevokeReason() { return revokeReason; }
+
+    public void setRevokeReason(CRLReason revokeReason) { this.revokeReason = revokeReason; }
 
     @Override
     public String toString() {

@@ -1,10 +1,8 @@
 package com.tingle.tingle.domain.dto;
 
+import com.tingle.tingle.domain.enums.CRLReason;
 import com.tingle.tingle.domain.enums.Role;
 
-/**
- * DTO koji sadrzi podatke sa forme prosledjene sa fronta
- * */
 public class CertificateX500NameDTO {
 
     private ExtensionsDTO extensions;
@@ -21,6 +19,8 @@ public class CertificateX500NameDTO {
 
     //rola je tip sertifikata -> ROOT, END_ENTITY ili INTERMEDIATE, sa fronta se mapira kao string
     private Role certificateRole;
+
+    private CRLReason reason;
 
 
     public CertificateX500NameDTO() {}
@@ -102,5 +102,10 @@ public class CertificateX500NameDTO {
     public ExtensionsDTO getExtensions() { return extensions; }
 
     public void setExtensions(ExtensionsDTO extensions) { this.extensions = extensions; }
+
+
+    public CRLReason getReason() { return reason; }
+
+    public void setReason(CRLReason reason) {this.reason = reason; }
 
 }

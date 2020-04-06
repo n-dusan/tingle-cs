@@ -10,11 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.FileNotFoundException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.PrivateKey;
-import java.security.SignatureException;
+import java.security.*;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -130,5 +126,30 @@ public class KeyStoreService {
 
         //sacuvaj stanje keystora
         keyStoreWriter.saveKeyStore(KeyStoreConfig.END_ENTITY_KEYSTORE_LOCATION, KeyStoreConfig.END_ENTITY_KEYSTORE_PASSWORD.toCharArray());
+    }
+
+
+    /**
+     * Returns a X509 Certificate from selected keystore
+     * @param alias: Serial number
+     * @param role: Where to search the keystore
+     * */
+    public X509Certificate getCertificate(String alias, Role role) {
+
+        String keyStoreLocation = "";
+        String keyStorePassword = "";
+
+        if(role == Role.ROOT) {
+            keyStoreLocation = KeyStoreConfig.ROOT_KEYSTORE_LOCATION;
+            keyStorePassword = KeyStoreConfig.ROOT_KEYSTORE_PASSWORD;
+        } else if(role == Role.INTERMEDIATE) {
+            keyStoreLocation = KeyStoreConfig.INTERMEDIATE_KEYSTORE_LOCATION;
+            keyStorePassword = KeyStoreConfig.INTERMEDIATE_KEYSTORE_PASSWORD;
+        } else {
+            keyStoreLocation = KeyStoreConfig.END_ENTITY_KEYSTORE_LOCATION;
+            keyStorePassword = KeyStoreConfig.END_ENTITY_KEYSTORE_PASSWORD;
+        }
+
+        return (X509Certificate) keyStoreReader.readCertificate(keyStoreLocation, keyStorePassword, alias);
     }
 }

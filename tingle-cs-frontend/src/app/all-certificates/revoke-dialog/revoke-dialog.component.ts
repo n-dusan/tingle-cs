@@ -24,9 +24,9 @@ export class RevokeDialogComponent implements OnInit, OnDestroy {
   }
 
   onRealRevoke() {
-    const toBeRevoked = this.selectedCertificate[1].revokationReason = this.selected;
-   // this.certificateService.revokeCertificate(toBeRevoked).subscribe( response => {  
-    //});
+    this.selectedCertificate[1].revokationReason = this.selected;
+    this.certificateService.revokeCertificate(this.selectedCertificate[1]);
+
   }
 
   ngOnDestroy() {

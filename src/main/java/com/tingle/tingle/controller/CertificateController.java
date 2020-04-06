@@ -1,10 +1,7 @@
 package com.tingle.tingle.controller;
 
 import java.io.FileNotFoundException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.SignatureException;
+import java.security.*;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.text.ParseException;
@@ -157,11 +154,19 @@ public class CertificateController {
     }
     
     @GetMapping(value = "/downloadCertificate/{serialNumber}", produces = "application/json")
-    	public ResponseEntity<CertificateDTO> downloadCert(@PathVariable String serialNumber){
+    	public ResponseEntity<Boolean> downloadCert(@PathVariable String serialNumber){
     		
-    		certificateService.downloadCertificate(serialNumber);
-    		return new ResponseEntity<>(HttpStatus.OK);
-    	}
-    
+    		Boolean ret = certificateService.downloadCertificate(serialNumber);
+    		if(ret) {
+    		    return new ResponseEntity<Boolean>(ret, HttpStatus.OK);
+            }
+    		    return new ResponseEntity<Boolean>(ret, HttpStatus.INTERNAL_SERVER_ERROR);
 
+    	}
+
+    @PutMapping(value="/revoke", consumes="application/json")
+    public ResponseEntity<String> revoke(@RequestBody CertificateX500NameDTO certificate) {
+        this.certificateService.revokeCertificate(certificate.getSerialNumber(), certificate.getReason());
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
 }

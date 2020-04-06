@@ -40,4 +40,11 @@
       <strong>Success!</strong> You have successfully downloaded the certificate.
     </div>
   </div>
+
+  <div class="row" [hidden]="!showError">
+    <div class="alert alert-success alert-dismissible">
+      <strong>Oops.</strong> Something went wrong with your download request.
+    </div>
+  </div>
+
 </mat-card>

@@ -52,10 +52,12 @@ export class CertificatesService {
 
 
     revokeCertificate(certificate: Certificate) {
-       // return this.http.put<Certificate[]>(this.url+'')
+        this.http.put<Certificate>(this.url+'/revoke', certificate).subscribe(response => {
+            return this.getCertificates();
+        })
     }
     
-    downloadCertificate(serialNumber: String) : Observable<Object>{
-        return this.http.get(`${this.url}/downloadCertificate/${serialNumber}`);
+    downloadCertificate(serialNumber: String) : Observable<boolean>{
+        return this.http.get<boolean>(`${this.url}/downloadCertificate/${serialNumber}`);
     }
 }

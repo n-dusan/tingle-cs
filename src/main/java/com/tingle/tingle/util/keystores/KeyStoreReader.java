@@ -3,7 +3,6 @@ package com.tingle.tingle.util.keystores;
 import com.tingle.tingle.domain.certificates.IssuerData;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder;
-import org.bouncycastle.util.encoders.Base64;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
@@ -86,6 +85,9 @@ public class KeyStoreReader {
      * Ucitava sertifikat is KS fajla
      */
     public Certificate readCertificate(String keyStoreFile, String keyStorePass, String alias) {
+
+        Certificate cert = null;
+
         try {
             //kreiramo instancu KeyStore
             KeyStore ks = KeyStore.getInstance("JKS", "SUN");
@@ -94,7 +96,7 @@ public class KeyStoreReader {
             ks.load(in, keyStorePass.toCharArray());
 
             if(ks.isKeyEntry(alias)) {
-                Certificate cert = ks.getCertificate(alias);
+                cert = ks.getCertificate(alias);
                 return cert;
             }
         } catch (KeyStoreException e) {
@@ -109,8 +111,9 @@ public class KeyStoreReader {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            return cert;
         }
-        return null;
     }
 
     /**

@@ -2,6 +2,7 @@ package com.tingle.tingle.service;
 
 import com.tingle.tingle.config.CertificateConfig;
 import com.tingle.tingle.config.KeyStoreConfig;
+import com.tingle.tingle.domain.enums.CRLReason;
 import com.tingle.tingle.util.keystores.KeyStoreReader;
 import com.tingle.tingle.domain.certificates.CertificateGenerator;
 import com.tingle.tingle.domain.certificates.IssuerData;
@@ -19,16 +20,13 @@ import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.tingle.tingle.domain.Certificate;
+
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.Base64;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.math.BigInteger;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
 import java.security.*;
 import java.security.cert.*;
 import java.text.ParseException;
@@ -60,6 +58,9 @@ public class CertificateService {
 
 
     public List<CertificateDTO> findAll() {
+
+
+
         List<Certificate> certificates = certificateRepository.findAll();
         List<CertificateDTO> dtoList = new ArrayList<CertificateDTO>();
 
@@ -444,57 +445,74 @@ public class CertificateService {
 
         //todo: if certificate isn't valid, recursively revoke every child
         //for now, just set the appropriate certificate to invalid
-//        Certificate invalidCertificate = certificateRepository.findCertificateBySerialNumber(certificate.getSerialNumber().toString());
-//        invalidCertificate.setActive(false);
-//        this.certificateRepository.save(invalidCertificate);
+        Certificate invalidCertificate = certificateRepository.findCertificateBySerialNumber(certificate.getSerialNumber().toString());
+        invalidCertificate.setActive(false);
+        this.certificateRepository.save(invalidCertificate);
 
         return false;
     }
     
-    public void downloadCertificate(String serialNumber){
-    	List<CertificateDTO> list = findAll();
-    	for(CertificateDTO c : list) {
-    		if(c.getSerialNumber().equals(serialNumber)) {
-    			try {
-    				if(c.getCertificateRole() == Role.ROOT) {
-    					List<X509Certificate> listCert = keyStoreService.findKeyStoreCertificates(Role.ROOT);
-    					for(X509Certificate cert : listCert) {
-    						if(cert.getSerialNumber().toString().equals(c.getSerialNumber())) {
-    							FileOutputStream os = new FileOutputStream(c.getCertificateRole() + ".cer");
-    							os.write("--BEGIN CERTIFICATE--\n".getBytes("US-ASCII"));
-    							os.write(Base64.getEncoder().encode(cert.getEncoded()));
-    							os.write("--END CERTIFICATE--\n".getBytes("US-ASCII"));
-    							os.close();
-    						}
-    					}
-    				}else if(c.getCertificateRole() == Role.INTERMEDIATE) {
-    					List<X509Certificate> listCert = keyStoreService.findKeyStoreCertificates(Role.INTERMEDIATE);
-    					for(X509Certificate cert : listCert) {
-    						if(cert.getSerialNumber().toString().equals(c.getSerialNumber())) {
-    							FileOutputStream os = new FileOutputStream(c.getCertificateRole() + ".cer");
-    							os.write("--BEGIN CERTIFICATE--\n".getBytes("US-ASCII"));
-    							os.write(Base64.getEncoder().encode(cert.getEncoded()));
-    							os.write("--END CERTIFICATE--\n".getBytes("US-ASCII"));
-    							os.close();
-    						}
-    					}
-    				}else {
-    					List<X509Certificate> listCert = keyStoreService.findKeyStoreCertificates(Role.END_ENTITY);
-    					for(X509Certificate cert : listCert) {
-    						if(cert.getSerialNumber().toString().equals(c.getSerialNumber())) {
-    							FileOutputStream os = new FileOutputStream(c.getCertificateRole() + ".cer");
-    							os.write("--BEGIN CERTIFICATE--\n".getBytes("US-ASCII"));
-    							os.write(Base64.getEncoder().encode(cert.getEncoded()));
-    							os.write("--END CERTIFICATE--\n".getBytes("US-ASCII"));
-    							os.close();
-    						}
-    					}
-    				}
-    			}catch(Exception e) {
-    				e.printStackTrace();
-    			}
-    		}
-    	}
+    public Boolean downloadCertificate(String serialNumber) {
+
+        //optimizovanije rešenje za download (ne pravi pozive u bazi i nema O(n^2))
+        java.security.cert.Certificate certificate = null;
+        Role role = Role.ROOT;
+        String path = "";
+
+        //prvo ga trazi u rootu
+        certificate = keyStoreReader.readCertificate(KeyStoreConfig.ROOT_KEYSTORE_LOCATION, KeyStoreConfig.ROOT_KEYSTORE_PASSWORD, serialNumber);
+        //nema ga u rootu, onda mozda u cA?
+        if(certificate == null) {
+            certificate = keyStoreReader.readCertificate(KeyStoreConfig.INTERMEDIATE_KEYSTORE_LOCATION, KeyStoreConfig.INTERMEDIATE_KEYSTORE_PASSWORD, serialNumber);
+            role = Role.INTERMEDIATE;
+        }
+        //nema ga ni u cA, onda je end entity.
+        if(certificate == null) {
+            certificate = keyStoreReader.readCertificate(KeyStoreConfig.END_ENTITY_KEYSTORE_LOCATION, KeyStoreConfig.END_ENTITY_KEYSTORE_PASSWORD, serialNumber);
+            role = Role.END_ENTITY;
+        }
+
+        X509Certificate x509Certificate = (X509Certificate) certificate;
+        FileOutputStream os = null;
+        try {
+
+            path = "./.jks/"+role.toString()+"-"+serialNumber+".cer";
+
+            os = new FileOutputStream(path);
+            os.write("--BEGIN CERTIFICATE--\n".getBytes("US-ASCII"));
+            os.write(Base64.getEncoder().encode(x509Certificate.getEncoded()));
+            os.write("--END CERTIFICATE--\n".getBytes("US-ASCII"));
+            os.close();
+
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (CertificateEncodingException e) {
+            e.printStackTrace();
+        } finally {
+            if(os != null) {
+                return true;
+            }
+
+            return false;
+        }
+
+    }
+
+    public void revokeCertificate(String serialNumber, CRLReason reason) {
+
+        Certificate forRevoke = certificateRepository.findCertificateBySerialNumber(serialNumber);
+
+        if(forRevoke == null) {
+            System.out.println("There was an error somewhere.");
+
+        }
+
+        forRevoke.setActive(false);
+        forRevoke.setRevokeReason(reason);
+
+        this.certificateRepository.save(forRevoke);
     }
 
 }
