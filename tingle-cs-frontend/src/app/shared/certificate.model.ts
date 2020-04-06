@@ -1,3 +1,5 @@
+import { Extensions } from './extensions.model';
+
 export class Certificate {
 
     constructor(
@@ -13,5 +15,6 @@ export class Certificate {
         public c?: string,
         public e?: string,
         public ou?: string,
-        public revokationReason?: string) {}
+        public revokationReason?: string,
+        public extensions?: Extensions) {}
 }

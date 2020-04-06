@@ -1,4 +1,5 @@
-<section fxFlex="100%" fxLayout="column" fxLayoutAlign="center center" style="margin-top: 25px;" *ngIf="!spin && !success">
+<section fxFlex="100%" fxLayout="column" fxLayoutAlign="center center" style="margin-top: 25px;"
+    *ngIf="!spin && !success">
     <h1>New Certificate</h1>
     <mat-horizontal-stepper [linear]="isLinear" fxFlex="100%" fxLayout="column" fxLayoutAlign="center center" #stepper>
         <mat-step [stepControl]="firstFormGroup">
@@ -132,44 +133,60 @@
                     </mat-card-header>
 
                     <h3>Extensions:</h3>
-                    Key Usage:
+                    
+                    <div fxFlex="100%" fxLayout="row" >
+                        <h4 fxFlex="20%">Key Usage:</h4>
+                        <div fxFlex fxLayout fxLayoutAlign="flex-end"></div>
+                        <mat-checkbox formControlName="criticalKeyUsage" 
+                        matTooltip="Is this information critical?">
+                            <mat-icon>priority_high</mat-icon>
+                        </mat-checkbox>
+                    </div>
                     <section fxFlex fxLayout="row" fxLayoutAlign="center center">
                         <div>
-                            <mat-checkbox [checked]="digitalSignature">Digital Signature</mat-checkbox> <br>
-                            <mat-checkbox [checked]="keyEncipherment">Key Encipherment</mat-checkbox> <br>
-                            <mat-checkbox [checked]="nonRepudiation">Non Repudiation</mat-checkbox> <br>
-                            <mat-checkbox [checked]="dataEncipherment">Data Encipherment</mat-checkbox> <br>
-                            <mat-checkbox [checked]="keyAgreement">Key Agreement</mat-checkbox> <br>
+                            <mat-checkbox formControlName="digitalSignature">Digital Signature</mat-checkbox> <br>
+                            <mat-checkbox formControlName="keyEncipherment">Key Encipherment</mat-checkbox> <br>
+                            <mat-checkbox formControlName="nonRepudiation">Non Repudiation</mat-checkbox> <br>
+                            <mat-checkbox formControlName="dataEncipherment">Data Encipherment</mat-checkbox> <br>
+                            <mat-checkbox formControlName="keyAgreement">Key Agreement</mat-checkbox> <br>
                         </div>
                         <div style="width: 15px;"></div>
                         <div>
-                            <mat-checkbox [checked]="keyCertSign">Key Cert Sign</mat-checkbox> <br>
-                            <mat-checkbox [checked]="crlSign">cRLSign</mat-checkbox> <br>
-                            <mat-checkbox [checked]="encipherOnly">Encipher Only</mat-checkbox> <br>
-                            <mat-checkbox [checked]="decipherOnly">Decipher Only</mat-checkbox> <br>
+                            <mat-checkbox formControlName="keyCertSign">Key Cert Sign</mat-checkbox> <br>
+                            <mat-checkbox formControlName="crlSign">cRLSign</mat-checkbox> <br>
+                            <mat-checkbox formControlName="encipherOnly">Encipher Only</mat-checkbox> <br>
+                            <mat-checkbox formControlName="decipherOnly">Decipher Only</mat-checkbox> <br>
                         </div>
 
                     </section>
                     <br>
-                    <mat-form-field *ngIf="!isSelfSigned">
-                        <!-- BASIC CONSTRAINTS -->
-                        <mat-label>Basic constraints - Subject type:</mat-label>
-                        <mat-select id="subject-type" name="subject-type" formControlName="subjectType">
-                            <mat-option value="CA" (click)="onSubjectTypeClick('CA')">
-                                CA
-                            </mat-option>
-                            <mat-option value="end-entity" (click)="onSubjectTypeClick('end-entity')">
-                                End-Entity
-                            </mat-option>
-                        </mat-select>
-                    </mat-form-field>
 
-                    <mat-form-field *ngIf="isSelfSigned">
-                        <!-- BASIC CONSTRAINTS -->
-                        <!-- If the certificate is Self-Signed, its type is CA by default -->
-                        <mat-label>Basic constraints - Subject type:</mat-label>
-                        <input type="text" matInput value="CA" disabled>
-                    </mat-form-field>
+                    <div fxFlex="100%" fxLayout="row" fxLayoutAlign="center center">
+                        <mat-form-field *ngIf="!isSelfSigned">
+                            <!-- BASIC CONSTRAINTS -->
+                            <mat-label>Basic constraints - Subject type:</mat-label>
+                            <mat-select id="subject-type" name="subject-type" formControlName="subjectType">
+                                <mat-option value="CA" (click)="onSubjectTypeClick('CA')">
+                                    CA
+                                </mat-option>
+                                <mat-option value="end-entity" (click)="onSubjectTypeClick('end-entity')">
+                                    End-Entity
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                        <mat-form-field *ngIf="isSelfSigned">
+                            <!-- If the certificate is Self-Signed, its type is CA by default -->
+                            <mat-label>Basic constraints - Subject type:</mat-label>
+                            <input type="text" matInput value="CA" disabled>
+                        </mat-form-field>
+                        <mat-checkbox formControlName="criticalBasicConstraints"
+                        matTooltip="Is this information critical?">
+                            <mat-icon>priority_high</mat-icon>
+                        </mat-checkbox>
+                    </div>
+
+
+                    
 
                     <mat-form-field>
                         <mat-label>Password:</mat-label>
@@ -203,8 +220,8 @@
     <h3>Your request is being processed.</h3>
 </div>
 
-<div *ngIf="success && !spin" fxFlex="100%" fxLayout="column" fxLayoutAlign="center center" 
-style="margin-top:25px; text-align: center;">
+<div *ngIf="success && !spin" fxFlex="100%" fxLayout="column" fxLayoutAlign="center center"
+    style="margin-top:25px; text-align: center;">
     <h1>Congratulations!</h1>
     <h3>You have successfully issued a Certificate!</h3>
     <h4>Back to <a routerLink="../home-page">Home page</a></h4>
