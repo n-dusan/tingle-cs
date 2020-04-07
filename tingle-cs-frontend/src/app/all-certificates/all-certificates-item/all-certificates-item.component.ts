@@ -1,9 +1,9 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, Input } from '@angular/core';
 import { Certificate } from '../../shared/certificate.model';
 import { Subscription } from 'rxjs';
 import { CertificatesService } from '../certificates.service';
 
-import {MatDialog} from '@angular/material/dialog';
+import { MatDialog } from '@angular/material/dialog';
 
 import { RevokeDialogComponent } from '../revoke-dialog/revoke-dialog.component';
 
@@ -15,7 +15,9 @@ import { RevokeDialogComponent } from '../revoke-dialog/revoke-dialog.component'
 export class AllCertificatesItemComponent implements OnInit, OnDestroy {
   
   selectedCertificate: Certificate[];
-  private subscription: Subscription;
+  
+  private selectedSubscription: Subscription;
+
   serialNumber: any;
   downloadCert = false;
   showError = false;
@@ -33,14 +35,15 @@ export class AllCertificatesItemComponent implements OnInit, OnDestroy {
 
 
   ngOnInit(): void {
-    this.subscription = this.certificateService.selectedCertificate.subscribe((data: Certificate[]) => {
+    this.selectedSubscription = this.certificateService.selectedCertificate.subscribe((data: Certificate[]) => {
       this.selectedCertificate = data;
     })
   }
 
   ngOnDestroy() {
-    this.subscription.unsubscribe();
+    this.selectedSubscription.unsubscribe();
   }
+
 
   downloadCertificate(serialNumber: String){
     this.certificateService.downloadCertificate(serialNumber).subscribe(data=>{

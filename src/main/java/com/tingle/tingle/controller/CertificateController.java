@@ -166,7 +166,7 @@ public class CertificateController {
 
     @PutMapping(value="/revoke", consumes="application/json")
     public ResponseEntity<String> revoke(@RequestBody CertificateX500NameDTO certificate) {
-        this.certificateService.revokeCertificate(certificate.getSerialNumber(), certificate.getReason());
+        this.certificateService.revokeCertificate(certificate.getSerialNumber(), certificate.getRevokationReason());
         return new ResponseEntity<>(HttpStatus.OK);
     }
 }

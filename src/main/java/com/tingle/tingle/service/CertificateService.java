@@ -69,7 +69,8 @@ public class CertificateService {
                     certificate.getId(),
                     certificate.getSerialNumber(),
                     certificate.isActive(),
-                    certificate.getCertificateRole());
+                    certificate.getCertificateRole(),
+                    certificate.getRevokeReason());
 
             dtoList.add(dto);
         }
@@ -87,26 +88,18 @@ public class CertificateService {
      * */
     public CertificateX500NameDTO[] getCertificateIssuerAndSubjectData(String serialNumber, Role certificateRole) {
         try {
-            List<X509Certificate> x509list = keyStoreService.findKeyStoreCertificates(certificateRole);
+            X509Certificate certificate = keyStoreService.getCertificate(serialNumber, certificateRole);
 
-            for (X509Certificate x509Certificate : x509list) {
-                if(x509Certificate.getSerialNumber().toString().equals(serialNumber)) {
+            X500Name subjName = new JcaX509CertificateHolder(certificate).getSubject();
+            X500Name issuerName = new JcaX509CertificateHolder(certificate).getIssuer();
 
+            CertificateX500NameDTO[] x509dto =  converter.convertFromX500Principals(subjName, issuerName);
 
-                    X500Name subjName = new JcaX509CertificateHolder(x509Certificate).getSubject();
-                    X500Name issuerName = new JcaX509CertificateHolder(x509Certificate).getIssuer();
+            x509dto[1].setCertificateRole(certificateRole);
+            x509dto[1].setSerialNumber(serialNumber);
 
-                    CertificateX500NameDTO[] x509dto =  converter.convertFromX500Principals(subjName, issuerName);
-
-                    x509dto[1].setCertificateRole(certificateRole);
-                    x509dto[1].setSerialNumber(serialNumber);
-
-                    return x509dto;
-                }
-            }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }   catch (InvalidNameException e) {
+            return x509dto;
+        } catch (InvalidNameException e) {
             e.printStackTrace();
         } catch (CertificateEncodingException e) {
             e.printStackTrace();
@@ -135,16 +128,13 @@ public class CertificateService {
         List<CertificateX500NameDTO> cADTOList = new ArrayList<CertificateX500NameDTO>();
 
         for (X509Certificate x509Certificate : cAJoinedList) {
-
-            //if this certificate isn't valid, don't append it
-            if(!validate(x509Certificate)) continue;
-
             String serialNumber = x509Certificate.getSerialNumber().toString();
             Certificate repositoryCertificate = certificateRepository.findCertificateBySerialNumber(serialNumber);
+            if(repositoryCertificate.getCertificateRole() != Role.END_ENTITY) {
+                //if this certificate isn't valid, don't append it
+                if(!validate(x509Certificate))
+                    continue;
 
-            //...simulation of OCSP request ...
-            OCSPResponse ocspResponse = checkCertificate(serialNumber);
-            if(ocspResponse == OCSPResponse.GOOD && repositoryCertificate.getCertificateRole() != Role.END_ENTITY) {
                 //set ISSUER data -> chain implementation. USE THE CHAIN LUKE. THE CHAIN IS WITHIN YOU.
                 //X509Certificate chain[] = converter.buildPath(x509Certificate, cAJoinedList);
                 //x509dto[0].setSerialNumber(chain[1].getSerialNumber().toString());
@@ -156,6 +146,8 @@ public class CertificateService {
                 //Izvuci rolu sertifikata iz repository sertifikata
                 x509dto[1].setCertificateRole(repositoryCertificate.getCertificateRole());
                 cADTOList.add(x509dto[1]);
+            } else {
+                System.out.println("FOUND AN END ENTITY.");
             }
         }
 
@@ -365,7 +357,6 @@ public class CertificateService {
      * OCSP Request service checks the database to find the certificate.
      * @returns: OCSPResponse enum wih the certificate status
      * */
-
     public OCSPResponse checkCertificate(String serialNumber) {
 
         Certificate requestedCertificate = certificateRepository.findCertificateBySerialNumber(serialNumber);
@@ -429,6 +420,15 @@ public class CertificateService {
 
 
             if(converter.isSelfSigned(chain[chain.length-1])) {
+
+                //ocsp chain validation
+                for(X509Certificate x509Cert : chain) {
+                    OCSPResponse response = checkCertificate(x509Cert.getSerialNumber().toString());
+                    //if a node in chain is revoked or unknown -> drop the chain
+                    if(response != OCSPResponse.GOOD) {
+                        return false;
+                    }
+                }
                 System.out.println("==========I AM GROOT");
                 return true;
             }
@@ -443,11 +443,10 @@ public class CertificateService {
             e.printStackTrace();
         }
 
-        //todo: if certificate isn't valid, recursively revoke every child
         //for now, just set the appropriate certificate to invalid
-        Certificate invalidCertificate = certificateRepository.findCertificateBySerialNumber(certificate.getSerialNumber().toString());
-        invalidCertificate.setActive(false);
-        this.certificateRepository.save(invalidCertificate);
+//        Certificate invalidCertificate = certificateRepository.findCertificateBySerialNumber(certificate.getSerialNumber().toString());
+//        invalidCertificate.setActive(false);
+//        this.certificateRepository.save(invalidCertificate);
 
         return false;
     }

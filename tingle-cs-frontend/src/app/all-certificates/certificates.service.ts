@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Certificate } from '../shared/certificate.model';
 import { environment } from '../../environments/environment'
 import { BehaviorSubject, Subject, Observable } from 'rxjs';
+import { skipWhile, take} from 'rxjs/operators';
 import { EndEntityCertificate } from '../shared/end-entity-cert.model';
 
 @Injectable({
@@ -15,6 +16,7 @@ export class CertificatesService {
     certificates: BehaviorSubject<Certificate[]> = new BehaviorSubject<Certificate[]>(null);
 
     selectedCertificate: BehaviorSubject<Certificate[]> = new BehaviorSubject<Certificate[]>(null);
+
     displayDetails = new Subject<boolean>();
 
     constructor(private http: HttpClient) {}
@@ -27,8 +29,16 @@ export class CertificatesService {
     }
     
     getCertificate(serialNumber: string, role: string) {
-        this.http.get<Certificate[]>(this.url+ '/get/'+ serialNumber +'/' + role).subscribe((response)=> {
-            this.selectedCertificate.next(response)
+        this.http.get<Certificate[]>(this.url+ '/get/'+ serialNumber +'/' + role).subscribe((response: Certificate[])=> {
+            this.certificates.pipe(skipWhile(value => !value), take(1)).subscribe( (value:Certificate[]) => {
+                for(let i = 0; i < value.length; i++) {
+                    if(value[i].serialNumber === response[1].serialNumber) {
+
+                      response[1].revokationReason = value[i].revokationReason;
+                      this.selectedCertificate.next(response)
+                    }
+                  }
+            })
         })
         this.displayDetails.next(true);
         return this.selectedCertificate.asObservable();

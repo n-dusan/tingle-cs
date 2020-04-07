@@ -20,7 +20,7 @@ public class CertificateX500NameDTO {
     //rola je tip sertifikata -> ROOT, END_ENTITY ili INTERMEDIATE, sa fronta se mapira kao string
     private Role certificateRole;
 
-    private CRLReason reason;
+    private CRLReason revokationReason;
 
 
     public CertificateX500NameDTO() {}
@@ -104,8 +104,8 @@ public class CertificateX500NameDTO {
     public void setExtensions(ExtensionsDTO extensions) { this.extensions = extensions; }
 
 
-    public CRLReason getReason() { return reason; }
+    public CRLReason getRevokationReason() { return revokationReason; }
 
-    public void setReason(CRLReason reason) {this.reason = reason; }
+    public void setRevokationReason(CRLReason revokationReason) {this.revokationReason = revokationReason; }
 
 }

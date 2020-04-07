@@ -1,5 +1,6 @@
 package com.tingle.tingle.domain.dto;
 
+import com.tingle.tingle.domain.enums.CRLReason;
 import com.tingle.tingle.domain.enums.Role;
 
 /**
@@ -12,18 +13,18 @@ public class CertificateDTO {
     private boolean active;
 
     private Role certificateRole;
+    private CRLReason revokationReason;
 
 
     public CertificateDTO() {}
 
-    public CertificateDTO(Long id, String serialNumber, boolean active, Role role) {
+    public CertificateDTO(Long id, String serialNumber, boolean active, Role role, CRLReason revokationReason) {
         this.id = id;
         this.serialNumber = serialNumber;
         this.active = active;
         this.certificateRole = role;
+        this.revokationReason = revokationReason;
     }
-
-
 
     public Long getId() {
         return id;
@@ -56,4 +57,9 @@ public class CertificateDTO {
     public void setActive(boolean active) {
         this.active = active;
     }
+
+    public CRLReason getRevokationReason() { return revokationReason; }
+
+    public void setRevokationReason(CRLReason revocationReason) { this.revokationReason = revocationReason; }
+
 }

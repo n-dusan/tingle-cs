@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, Output } from '@angular/core';
 import { Certificate } from '../../shared/certificate.model';
 import { CertificatesService } from '../certificates.service';
 import { Subscription } from 'rxjs';

@@ -16,7 +16,7 @@
     L: <b> {{selectedCertificate[0].l }} </b> <br />
     E: <b> {{selectedCertificate[0].e }} </b> <br />
     <hr />
-    <b> Subject </b>
+    <b> Subject <span class="text-danger" *ngIf="selectedCertificate[1].revokationReason"> REVOKED - {{selectedCertificate[1].revokationReason }}</span></b>
     <br />
     <hr />
     CN: <b> {{selectedCertificate[1].cn}} </b> <br />
@@ -26,11 +26,11 @@
     ST: <b> {{selectedCertificate[1].st }} </b> <br />
     L: <b> {{selectedCertificate[1].l }}</b> <br />
     E: <b> {{selectedCertificate[1].e }} </b> <br />
-    Certificate authority: <b> {{selectedCertificate[1].certificateRole}} </b> <br />
+    Certificate authority: <b> {{selectedCertificate[1].certificateRole}} </b> <br/>
 
   </mat-card-content>
   <mat-card-actions>
-    <button mat-raised-button color="warn" (click)="onRevoke()">Revoke</button>
+    <button mat-raised-button [disabled]="selectedCertificate[1].revokationReason" color="warn" (click)="onRevoke()">Revoke</button>
     <button mat-raised-button color="primary"
       (click)="downloadCertificate(selectedCertificate[1].serialNumber)">Download</button>
   </mat-card-actions>
