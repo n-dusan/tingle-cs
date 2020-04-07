@@ -59,22 +59,15 @@ public class CertificateService {
 
     public List<CertificateDTO> findAll() {
 
-
-
         List<Certificate> certificates = certificateRepository.findAll();
-        List<CertificateDTO> dtoList = new ArrayList<CertificateDTO>();
 
-        for (Certificate certificate : certificates) {
-            CertificateDTO dto = new CertificateDTO(
-                    certificate.getId(),
-                    certificate.getSerialNumber(),
-                    certificate.isActive(),
-                    certificate.getCertificateRole(),
-                    certificate.getRevokeReason());
-
-            dtoList.add(dto);
-        }
-        return dtoList;
+        return certificates.stream().map(e -> new CertificateDTO(
+                e.getId(),
+                e.getSerialNumber(),
+                e.isActive(),
+                e.getCertificateRole(),
+                e.getRevokeReason()
+        )).collect(Collectors.toList());
     }
 
     /**
@@ -130,7 +123,7 @@ public class CertificateService {
         for (X509Certificate x509Certificate : cAJoinedList) {
             String serialNumber = x509Certificate.getSerialNumber().toString();
             Certificate repositoryCertificate = certificateRepository.findCertificateBySerialNumber(serialNumber);
-            if(repositoryCertificate.getCertificateRole() != Role.END_ENTITY) {
+            if( repositoryCertificate != null && repositoryCertificate.getCertificateRole() != Role.END_ENTITY) {
                 //if this certificate isn't valid, don't append it
                 if(!validate(x509Certificate))
                     continue;
@@ -167,7 +160,8 @@ public class CertificateService {
         SubjectData subject = generateSubjectData(dto);
         IssuerData issuer = generateIssuerData(dto, subject.getPrivateKey());
 
-        X509Certificate cert = certificateGenerator.generateCertificate(subject, issuer, true);
+        // changed the last param from isCA to extensions
+        X509Certificate cert = certificateGenerator.generateCertificate(subject, issuer, dto.getExtensions());
 
 
         System.out.println("\n===== Certificate issuer=====");
@@ -211,7 +205,7 @@ public class CertificateService {
 
                 SubjectData subject = generateSubjectData(dto);
 
-                X509Certificate cert = certificateGenerator.generateCertificate(subject, issuer, true);
+                X509Certificate cert = certificateGenerator.generateCertificate(subject, issuer, dto.getExtensions());
 
                 //TODO: verify
                 if(!validate(cert)) {
@@ -249,7 +243,7 @@ public class CertificateService {
     		throw new Exception();
     	}
 
-        X509Certificate cert = certificateGenerator.generateCertificate(subject, issuer, false);
+        X509Certificate cert = certificateGenerator.generateCertificate(subject, issuer, subjectDTO.getExtensions());
 
         // TODO: puca verifikacija: certificate does not verify with supplied key
 //        cert.verify(subject.getPublicKey());

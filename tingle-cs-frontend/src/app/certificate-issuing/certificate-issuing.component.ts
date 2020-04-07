@@ -3,6 +3,9 @@ import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { Certificate } from '../shared/certificate.model';
 import { CertificatesService } from '../all-certificates/certificates.service';
 import { EndEntityCertificate } from '../shared/end-entity-cert.model';
+import { Extensions } from '../shared/extensions.model';
+import { ExtensionsKeyUsage } from '../shared/key-usage.model';
+import { ExtensionsBasicConstraints } from '../shared/basic-constraints.model';
 
 @Component({
   selector: 'app-certificate-issuing',
@@ -23,15 +26,6 @@ export class CertificateIssuingComponent implements OnInit {
   isSelfSigned = false;
   selectedCA: Certificate;
   selectedSubjectType: string;
-  digitalSignature = false;
-  keyEncipherment = false;
-  nonRepudiation = false;
-  dataEncipherment = false;
-  keyAgreement = false;
-  keyCertSign = false;
-  crlSign = false;
-  encipherOnly = false;
-  decipherOnly = false;
 
   constructor(private _formBuilder: FormBuilder,
     private certificateService: CertificatesService) { }
@@ -59,6 +53,17 @@ export class CertificateIssuingComponent implements OnInit {
       ca: ['']
     });
     this.thirdFormGroup = this._formBuilder.group({
+      criticalKeyUsage: [false],
+      criticalBasicConstraints: [false],
+      digitalSignature: [false],
+      keyEncipherment: [false],
+      nonRepudiation: [false],
+      dataEncipherment: [false],
+      keyAgreement: [false],
+      keyCertSign: [false],
+      crlSign: [false],
+      encipherOnly: [false],
+      decipherOnly: [false],
       subjectType: ['', Validators.required],
       password: [''],
       alias: ['']
@@ -80,8 +85,10 @@ export class CertificateIssuingComponent implements OnInit {
   }
 
   onDoneClick() {
+    //========== Take values from forms and construct a Certificate object ==========
     const alias = this.thirdFormGroup.value.alias;
     const active = true;
+
     var role = '';
     if (this.isSelfSigned) {
       role = 'ROOT';
@@ -90,6 +97,7 @@ export class CertificateIssuingComponent implements OnInit {
     } else {
       role = 'END_ENTITY'
     }
+
     const cn = this.firstFormGroup.value.CN;
     const o = this.firstFormGroup.value.ON;
     const l = this.firstFormGroup.value.LN;
@@ -104,17 +112,21 @@ export class CertificateIssuingComponent implements OnInit {
     // TODO: don't use EndEntityCertificate. Use Certificate and put 
     // issuers' serial number as cert.serialNumber
     const endEntityCert: EndEntityCertificate = new EndEntityCertificate(cert, issuer);
-    
-    const newCert = new Certificate(null, null, alias, true, role, cn, o, l , st, c, e, ou);
+
+    const newCert = new Certificate(null, null, alias, true, role, cn, o, l, st, c, e, ou);
+    newCert.extensions = this.attachExtensions();
+
+    //CHECK 
+    console.log(newCert)
 
     // Make request based on certificate role
-    if(role === 'ROOT'){
+    if (role === 'ROOT') {
       this.makeRootRequest(newCert);
     } else if (role === 'INTERMEDIATE') {
       // set serial number to issuer.serialNumber
       newCert.serialNumber = this.selectedCA.serialNumber;
       this.makeCARequest(newCert);
-    }else {
+    } else {
       this.makeEndEntityRequest(endEntityCert);
     }
 
@@ -125,9 +137,7 @@ export class CertificateIssuingComponent implements OnInit {
     this.isSelfSigned = !this.isSelfSigned;
     if (this.isSelfSigned) {
       this.thirdFormGroup.value.subjectType = "CA"
-      console.log(this.thirdFormGroup.value.subjectType)
     }
-    console.log('clicked: ' + this.isSelfSigned)
   }
 
 
@@ -175,5 +185,40 @@ export class CertificateIssuingComponent implements OnInit {
       }
     );
   }
+
+  attachExtensions(): Extensions {
+
+    var extensions: Extensions = new Extensions();
+    var keyUsage: ExtensionsKeyUsage = new ExtensionsKeyUsage();
+    var basicConstraints: ExtensionsBasicConstraints = new ExtensionsBasicConstraints();
+
+    // Attach key usages
+    keyUsage.digitalSignature = this.thirdFormGroup.value.digitalSignature;
+    keyUsage.nonRepudation = this.thirdFormGroup.value.nonRepudiation;
+    keyUsage.keyEncipherment = this.thirdFormGroup.value.keyEncipherment;
+    keyUsage.dataEncipherment = this.thirdFormGroup.value.dataEncipherment;
+    keyUsage.keyAgreement = this.thirdFormGroup.value.keyAgreement;
+    keyUsage.keyCertSign = this.thirdFormGroup.value.keyCertSign;
+    keyUsage.crlSign = this.thirdFormGroup.value.crlSign;
+    keyUsage.encipherOnly = this.thirdFormGroup.value.encipherOnly;
+    keyUsage.decipherOnly = this.thirdFormGroup.value.decipherOnly;
+    keyUsage.critical = this.thirdFormGroup.value.criticalKeyUsage;
+    extensions.keyUsage = keyUsage;
+
+    // Attach basic constraints
+    if (this.isSelfSigned || this.thirdFormGroup.value.subjectType === "CA") {
+      basicConstraints.certificateAuthority = true;
+    } else {
+      basicConstraints.certificateAuthority = false;
+    }
+    basicConstraints.critical = this.thirdFormGroup.value.criticalBasicConstraints;
+    extensions.basicConstraints = basicConstraints;
+
+
+    console.log(extensions)
+
+    return extensions;
+  }
+
 
 }

@@ -28,8 +28,10 @@ export class CertificatesService {
         return this.certificates.asObservable();
     }
     
+    
     getCertificate(serialNumber: string, role: string) {
         this.http.get<Certificate[]>(this.url+ '/get/'+ serialNumber +'/' + role).subscribe((response: Certificate[])=> {
+            //no idea what im doing
             this.certificates.pipe(skipWhile(value => !value), take(1)).subscribe( (value:Certificate[]) => {
                 for(let i = 0; i < value.length; i++) {
                     if(value[i].serialNumber === response[1].serialNumber) {

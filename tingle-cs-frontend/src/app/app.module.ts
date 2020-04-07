@@ -22,6 +22,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatTableModule } from '@angular/material/table';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialogModule } from '@angular/material/dialog';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { LoginComponent } from './auth/login/login.component';
 import { HeaderComponent } from './navigation/header/header.component';
@@ -76,7 +77,8 @@ import { RevokeDialogComponent } from './all-certificates/revoke-dialog/revoke-d
     MatDividerModule,
     MatTableModule,
     MatProgressSpinnerModule,
-    MatDialogModule
+    MatDialogModule,
+    MatTooltipModule
   ],
   providers: [],
   bootstrap: [AppComponent]
