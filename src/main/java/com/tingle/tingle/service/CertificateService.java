@@ -70,6 +70,18 @@ public class CertificateService {
         )).collect(Collectors.toList());
     }
 
+    public List<CertificateDTO> findAllActive() {
+        List<Certificate> certificates = certificateRepository.findAllActive();
+
+        return certificates.stream().map(e -> new CertificateDTO(
+                e.getId(),
+                e.getSerialNumber(),
+                e.isActive(),
+                e.getCertificateRole(),
+                e.getRevokeReason()
+        )).collect(Collectors.toList());
+    }
+
     /**
      * @param serialNumber: Serial number of a certificate that's being converted
      * @param certificateRole: ROOT;INTERMEDIATE;END_ENTITY, used for searching the corresponding keystore
@@ -110,13 +122,13 @@ public class CertificateService {
         List<X509Certificate> cAJoinedList = findCACertificates();
 
         //ne znam zasto mi duplira root u cA; ovo je glupav quickfix
-        cAJoinedList = cAJoinedList.stream()
-                .distinct()
-                .collect(Collectors.toList());
 
         if(cAJoinedList == null) {
             return null;
         }
+        cAJoinedList = cAJoinedList.stream()
+                .distinct()
+                .collect(Collectors.toList());
 
         List<CertificateX500NameDTO> cADTOList = new ArrayList<CertificateX500NameDTO>();
 
@@ -154,7 +166,7 @@ public class CertificateService {
         Sadrzi sve podatke o kreiranju sertifikata
         U ovom slucaju, issuer i subject su ista firma
      * */
-    public void generateSelfSignedCertificate(CertificateX500NameDTO dto) throws NoSuchProviderException, CertificateException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, ParseException {
+    public void generateSelfSignedCertificate(CertificateX500NameDTO dto) throws ParseException {
 
         //keypair za subjekta i issuera je isti, jer je self-signed sertifikat
         SubjectData subject = generateSubjectData(dto);
@@ -227,26 +239,22 @@ public class CertificateService {
         }
     }
 
-    public void generateEndEntityCertificate(CertificateX500NameDTO subjectDTO, CertificateX500NameDTO issuerDTO) throws Exception {
+    public void generateEndEntityCertificate(CertificateX500NameDTO subjectDTO, CertificateX500NameDTO issuerDTO) throws ParseException {
     	SubjectData subject = generateSubjectData(subjectDTO);
 
     	String keyStorePassword = "";
     	IssuerData issuer;
-    	if(issuerDTO.getCertificateRole() == Role.ROOT) {
-    		keyStorePassword = KeyStoreConfig.ROOT_KEYSTORE_PASSWORD;
-    		issuer = this.keyStoreReader.readIssuerFromStore(KeyStoreConfig.ROOT_KEYSTORE_LOCATION, issuerDTO.getSerialNumber(), keyStorePassword.toCharArray(), keyStorePassword.toCharArray());
-    	} else if(issuerDTO.getCertificateRole() == Role.INTERMEDIATE) {
-    		keyStorePassword = KeyStoreConfig.INTERMEDIATE_KEYSTORE_PASSWORD;
-    		issuer = this.keyStoreReader.readIssuerFromStore(KeyStoreConfig.INTERMEDIATE_KEYSTORE_LOCATION, issuerDTO.getSerialNumber(), keyStorePassword.toCharArray(), keyStorePassword.toCharArray());
-    	} else {
-    		//Throw exception because End Entity is somehow trying to issue
-    		throw new Exception();
-    	}
+        System.out.println("issuer dto " + issuerDTO.getSerialNumber());
+        issuer = keyStoreReader.readIssuerFromStore(KeyStoreConfig.ROOT_KEYSTORE_LOCATION,
+                issuerDTO.getSerialNumber(), KeyStoreConfig.ROOT_KEYSTORE_PASSWORD.toCharArray(),
+                KeyStoreConfig.ROOT_KEYSTORE_PASSWORD.toCharArray());
+        if(issuer == null) {
+            issuer = keyStoreReader.readIssuerFromStore(KeyStoreConfig.INTERMEDIATE_KEYSTORE_LOCATION,
+                    issuerDTO.getSerialNumber(), KeyStoreConfig.INTERMEDIATE_KEYSTORE_PASSWORD.toCharArray(),
+                    KeyStoreConfig.INTERMEDIATE_KEYSTORE_PASSWORD.toCharArray());
+        }
 
         X509Certificate cert = certificateGenerator.generateCertificate(subject, issuer, subjectDTO.getExtensions());
-
-        // TODO: puca verifikacija: certificate does not verify with supplied key
-//        cert.verify(subject.getPublicKey());
 
         System.out.println("\n===== Certificate issuer=====");
         System.out.println(cert.getIssuerX500Principal().getName());
@@ -318,7 +326,6 @@ public class CertificateService {
         builder.addRDN(BCStyle.OU, dto.getOU());
         builder.addRDN(BCStyle.C, dto.getC());
         builder.addRDN(BCStyle.E, dto.getE());
-        //UID (USER ID) je ID korisnika, treba da kupiti iz JWT-a npr, tj onaj admin koji je ulogovan
         builder.addRDN(BCStyle.UID, "123456");
 
         return new SubjectData(keyPair.getPublic(), builder.build(), serialNumber, startDate, endDate, keyPair.getPrivate());
@@ -369,23 +376,18 @@ public class CertificateService {
 
     /** merge lista koja vraća sve cA i root sertifikate */
     public List<X509Certificate> findCACertificates() {
-        try {
-            List<X509Certificate> x509rootList = keyStoreService.findKeyStoreCertificates(Role.ROOT);
+        List<X509Certificate> x509rootList = keyStoreService.findKeyStoreCertificates(Role.ROOT);
 
-            //No roots, how can I issue anything without them?
-            if(x509rootList.isEmpty()) {
-                return null;
-            }
-
-            List<X509Certificate> x509intermediateList = keyStoreService.findKeyStoreCertificates(Role.INTERMEDIATE);
-
-            return Stream.concat(x509rootList.stream(), x509intermediateList.stream())
-                    .collect(Collectors.toList());
-        } catch(FileNotFoundException e) {
-            e.printStackTrace();
+        //No roots, how can I issue anything without them?
+        if(x509rootList.isEmpty()) {
+            return null;
         }
 
-        return null;
+        List<X509Certificate> x509intermediateList = keyStoreService.findKeyStoreCertificates(Role.INTERMEDIATE);
+
+        return Stream.concat(x509rootList.stream(), x509intermediateList.stream())
+                .collect(Collectors.toList());
+
     }
 
 
@@ -447,7 +449,6 @@ public class CertificateService {
     
     public Boolean downloadCertificate(String serialNumber) {
 
-        //optimizovanije rešenje za download (ne pravi pozive u bazi i nema O(n^2))
         java.security.cert.Certificate certificate = null;
         Role role = Role.ROOT;
         String path = "";
@@ -469,7 +470,7 @@ public class CertificateService {
         FileOutputStream os = null;
         try {
 
-            path = "./.jks/"+role.toString()+"-"+serialNumber+".cer";
+            path = "./.jks/"+ role.toString() + "-" + serialNumber + ".cer";
 
             os = new FileOutputStream(path);
             os.write("--BEGIN CERTIFICATE--\n".getBytes("US-ASCII"));
@@ -493,19 +494,34 @@ public class CertificateService {
 
     }
 
-    public void revokeCertificate(String serialNumber, CRLReason reason) {
+    public void revokeCertificate(String serialNumber, CRLReason reason) throws NoSuchProviderException, CertificateException, NoSuchAlgorithmException, InvalidKeyException {
+        
+        List<Certificate> allActiveCertificates = certificateRepository.findAllActive();
+        List<X509Certificate> allCertificates = keyStoreService.findKeyStoreCertificates(null);
 
-        Certificate forRevoke = certificateRepository.findCertificateBySerialNumber(serialNumber);
+        allCertificates = allCertificates.stream()
+                .distinct()
+                .collect(Collectors.toList());
 
-        if(forRevoke == null) {
-            System.out.println("There was an error somewhere.");
+        for (Certificate allActiveCertificate : allActiveCertificates) {
+
+            X509Certificate x509 = keyStoreService.findCertificate(allActiveCertificate.getSerialNumber());
+            X509Certificate[] chain = CConverter.buildPath(x509, allCertificates);
+
+            for(int i = 0; i < chain.length; i++) {
+                if(chain[i].getSerialNumber().toString().equals(serialNumber)) {
+                    for(int j = 0; j <= i; j++) {
+                        Certificate forRevoke = certificateRepository.findCertificateBySerialNumber(chain[j].getSerialNumber().toString());
+                        forRevoke.setActive(false);
+                        forRevoke.setRevokeReason(reason);
+                        this.certificateRepository.save(forRevoke);
+                    }
+                }
+            }
 
         }
 
-        forRevoke.setActive(false);
-        forRevoke.setRevokeReason(reason);
 
-        this.certificateRepository.save(forRevoke);
     }
 
 }

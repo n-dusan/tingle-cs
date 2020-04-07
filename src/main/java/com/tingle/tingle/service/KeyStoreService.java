@@ -1,6 +1,5 @@
 package com.tingle.tingle.service;
 
-import com.tingle.tingle.config.CertificateConfig;
 import com.tingle.tingle.config.KeyStoreConfig;
 import com.tingle.tingle.util.keystores.KeyStoreReader;
 import com.tingle.tingle.util.keystores.KeyStoreWriter;
@@ -15,6 +14,7 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -56,23 +56,37 @@ public class KeyStoreService {
 
     /**
      * @param certificateRole: Role from which the keystore will provide a list of certificates
+     * forward null to get all certificates from all keystores
      * @return List<X509Certificate>: returns a X509 casted list of certificates from the appropriate keystore
      * */
-    public List<X509Certificate> findKeyStoreCertificates(Role certificateRole) throws FileNotFoundException {
+    public List<X509Certificate> findKeyStoreCertificates(Role certificateRole) {
 
-        if(certificateRole == Role.ROOT) {
-            List<Certificate> rootCerts = keyStoreReader.readAllCertificates(
-                    KeyStoreConfig.ROOT_KEYSTORE_LOCATION, KeyStoreConfig.ROOT_KEYSTORE_PASSWORD.toCharArray());
-            return rootCerts.stream().map(e -> (X509Certificate) e).collect(Collectors.toList());
-        }
-        else if(certificateRole == Role.INTERMEDIATE) {
-            List<Certificate> intermediateCerts = keyStoreReader.readAllCertificates(
-                    KeyStoreConfig.INTERMEDIATE_KEYSTORE_LOCATION, KeyStoreConfig.INTERMEDIATE_KEYSTORE_PASSWORD.toCharArray());
-            return intermediateCerts.stream().map(e -> (X509Certificate) e).collect(Collectors.toList());
+        List<Certificate> rootCerts = keyStoreReader.readAllCertificates(
+                KeyStoreConfig.ROOT_KEYSTORE_LOCATION, KeyStoreConfig.ROOT_KEYSTORE_PASSWORD.toCharArray());
+
+        List<Certificate> intermediateCerts = keyStoreReader.readAllCertificates(
+                KeyStoreConfig.INTERMEDIATE_KEYSTORE_LOCATION, KeyStoreConfig.INTERMEDIATE_KEYSTORE_PASSWORD.toCharArray());
+
+        List<Certificate> endEntityCerts = keyStoreReader.readAllCertificates(
+                KeyStoreConfig.END_ENTITY_KEYSTORE_LOCATION, KeyStoreConfig.END_ENTITY_KEYSTORE_PASSWORD.toCharArray());
+
+        if(certificateRole != null) {
+            if (certificateRole == Role.ROOT) {
+
+                return rootCerts.stream().map(e -> (X509Certificate) e).collect(Collectors.toList());
+            } else if (certificateRole == Role.INTERMEDIATE) {
+
+                return intermediateCerts.stream().map(e -> (X509Certificate) e).collect(Collectors.toList());
+            } else {
+
+                return endEntityCerts.stream().map(e -> (X509Certificate) e).collect(Collectors.toList());
+            }
         } else {
-            List<Certificate> endEntityCerts = keyStoreReader.readAllCertificates(
-                    KeyStoreConfig.END_ENTITY_KEYSTORE_LOCATION, KeyStoreConfig.END_ENTITY_KEYSTORE_PASSWORD.toCharArray());
-            return endEntityCerts.stream().map(e -> (X509Certificate) e).collect(Collectors.toList());
+            List<Certificate> all = new ArrayList<Certificate>();
+            all.addAll(rootCerts);
+            all.addAll(intermediateCerts);
+            all.addAll(endEntityCerts);
+            return all.stream().map(e -> (X509Certificate) e).collect(Collectors.toList());
         }
     }
 
@@ -80,8 +94,6 @@ public class KeyStoreService {
     /**
      * Metoda pravi root .jks, ako ga nema, i ubacuje u njega jedan self-signed sertifikat
      * @param: dto: DTO sent from frontend
-     * TODO: nova metoda za dodavanje roota,  iskomentarisati ovaj loadKeyStore i umesto null usmeriti putanju ka već kreiranom
-     * root keystore fajlu
      *  */
     public void generateRootKeyStore(CertificateX500NameDTO dto) throws CertificateException, ParseException, NoSuchAlgorithmException, SignatureException, NoSuchProviderException, InvalidKeyException {
         keyStoreWriter.loadKeyStore(null, KeyStoreConfig.ROOT_KEYSTORE_PASSWORD.toCharArray());
@@ -110,8 +122,7 @@ public class KeyStoreService {
      *  */
     public void generateEndEntityKeyStore(EndEntityDTO ee_dto) throws CertificateException, ParseException, NoSuchAlgorithmException, SignatureException, NoSuchProviderException, InvalidKeyException {
     	System.out.println("==== MAKING NEW END ENTITY CERTIFICATE ====");
-    	
-    	//Mislim da ovde ne loaduje end-entity.jks (tj ne napravi ga ako ne postoji)
+
     	keyStoreWriter.loadKeyStore(null, KeyStoreConfig.END_ENTITY_KEYSTORE_PASSWORD.toCharArray());
 
     	CertificateX500NameDTO subject = ee_dto.getSubject();
@@ -120,8 +131,8 @@ public class KeyStoreService {
         try {
 			certificateService.generateEndEntityCertificate(subject, issuer);
 		} catch (Exception e) {
-			System.out.println("ERROR");
-			e.printStackTrace();
+            e.printStackTrace();
+            System.out.println("Couldn't make end entity certificate");
 		}
 
         //sacuvaj stanje keystora
@@ -151,5 +162,22 @@ public class KeyStoreService {
         }
 
         return (X509Certificate) keyStoreReader.readCertificate(keyStoreLocation, keyStorePassword, alias);
+    }
+
+
+    /** returns null if it can't find the certificate */
+    public X509Certificate findCertificate(String alias) {
+
+        X509Certificate x509 = (X509Certificate) keyStoreReader.readCertificate(KeyStoreConfig.ROOT_KEYSTORE_LOCATION, KeyStoreConfig.ROOT_KEYSTORE_PASSWORD, alias);
+
+        if(x509 == null) {
+            x509 = (X509Certificate) keyStoreReader.readCertificate(KeyStoreConfig.INTERMEDIATE_KEYSTORE_LOCATION, KeyStoreConfig.INTERMEDIATE_KEYSTORE_PASSWORD, alias);
+        }
+
+        if(x509 == null) {
+            x509 = (X509Certificate) keyStoreReader.readCertificate(KeyStoreConfig.END_ENTITY_KEYSTORE_LOCATION, KeyStoreConfig.END_ENTITY_KEYSTORE_PASSWORD, alias);
+        }
+
+        return x509;
     }
 }

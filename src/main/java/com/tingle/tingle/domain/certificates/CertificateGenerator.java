@@ -54,19 +54,19 @@ public class CertificateGenerator {
 
             //Ekstenzije za sertifikate (namenu i da li je CA ili nije)
             // Basic Constraints
-            BasicConstraintsDTO basicConstraintsDTO = extensions.getBasicConstraints();
-            KeyUsageDTO keyUsageDTO = extensions.getKeyUsage();
+//            BasicConstraintsDTO basicConstraintsDTO = extensions.getBasicConstraints();
+//            KeyUsageDTO keyUsageDTO = extensions.getKeyUsage();
             
-            BasicConstraints basicConstraints = new BasicConstraints(basicConstraintsDTO.isCertificateAuthority()); // <-- true for CA, false for EndEntity
-
-            certGen.addExtension(new ASN1ObjectIdentifier("2.5.29.19"), basicConstraintsDTO.isCritical(), basicConstraints); // Basic Constraints is usually marked as critical.
-            
-            // loop through key usages and add them to cert
-            ArrayList<KeyUsage> keyUsages = getListOfKeyUsages(keyUsageDTO);
-            boolean isKeyUsageCritical = keyUsageDTO.isCritical();
-            for(KeyUsage ku : keyUsages) {
-            	certGen.addExtension(Extension.keyUsage, isKeyUsageCritical, ku);
-            }
+//            BasicConstraints basicConstraints = new BasicConstraints(basicConstraintsDTO.isCertificateAuthority()); // <-- true for CA, false for EndEntity
+//
+//            certGen.addExtension(new ASN1ObjectIdentifier("2.5.29.19"), basicConstraintsDTO.isCritical(), basicConstraints); // Basic Constraints is usually marked as critical.
+//
+//            // loop through key usages and add them to cert
+//            ArrayList<KeyUsage> keyUsages = getListOfKeyUsages(keyUsageDTO);
+//            boolean isKeyUsageCritical = keyUsageDTO.isCritical();
+////            for(KeyUsage ku : keyUsages) {
+////            	certGen.addExtension(Extension.keyUsage, isKeyUsageCritical, ku);
+////            }
             
             JcaX509CertificateConverter certConverter = new JcaX509CertificateConverter();
             certConverter = certConverter.setProvider("BC");
@@ -81,8 +81,6 @@ public class CertificateGenerator {
         } catch (OperatorCreationException e) {
             e.printStackTrace();
         } catch (CertificateException e) {
-            e.printStackTrace();
-        } catch (CertIOException e) {
             e.printStackTrace();
         }
         return null;
