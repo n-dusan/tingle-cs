@@ -1,16 +1,107 @@
 package com.tingle.tingle.config;
-import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
 
-
-@Component
+@Configuration
 public class KeyStoreConfig {
 
-    public static final String ROOT_KEYSTORE_LOCATION = "./.jks/root.jks";
-    public static final String INTERMEDIATE_KEYSTORE_LOCATION = "./.jks/intermediate.jks";
-    public static final String END_ENTITY_KEYSTORE_LOCATION = "./.jks/end-entity.jks";
+    @Value("${tingle.root.keystore.location}")
+    private String rootKeyStoreLocation;
 
-    public static final String ROOT_KEYSTORE_PASSWORD = "root";
-    public static final String INTERMEDIATE_KEYSTORE_PASSWORD = "intermediate";
-    public static final String END_ENTITY_KEYSTORE_PASSWORD = "end-entity";
+    @Value("${tingle.intermediate.keystore.location}")
+    private String intermediateKeyStoreLocation;
+
+    @Value("${tingle.endentity.keystore.location}")
+    private String endEntityKeyStoreLocation;
+
+    @Value("${tingle.root.keystore.password}")
+    private String rootKeyStorePassword;
+
+    @Value("${tingle.intermediate.keystore.password}")
+    private String intermediateKeyStorePassword;
+
+    @Value("${tingle.endentity.keystore.password}")
+    private String endEntityKeyStorePassword;
+
+    @Value("${tingle.root.duration.years}")
+    private Integer rootYears;
+
+    @Value("${tingle.intermediate.duration.years}")
+    private Integer intermediateYears;
+
+    @Value("${tingle.endentity.duration.years}")
+    private Integer endEntityYears;
+
+    public String getRootKeyStoreLocation() {
+        return rootKeyStoreLocation;
+    }
+
+    public void setRootKeyStoreLocation(String rootKeyStoreLocation) {
+        this.rootKeyStoreLocation = rootKeyStoreLocation;
+    }
+
+    public String getIntermediateKeyStoreLocation() {
+        return intermediateKeyStoreLocation;
+    }
+
+    public void setIntermediateKeyStoreLocation(String intermediateKeyStoreLocation) {
+        this.intermediateKeyStoreLocation = intermediateKeyStoreLocation;
+    }
+
+    public String getEndEntityKeyStoreLocation() {
+        return endEntityKeyStoreLocation;
+    }
+
+    public void setEndEntityKeyStoreLocation(String endEntityKeyStoreLocation) {
+        this.endEntityKeyStoreLocation = endEntityKeyStoreLocation;
+    }
+
+    public String getRootKeyStorePassword() {
+        return rootKeyStorePassword;
+    }
+
+    public void setRootKeyStorePassword(String rootKeyStorePassword) {
+        this.rootKeyStorePassword = rootKeyStorePassword;
+    }
+
+    public String getIntermediateKeyStorePassword() {
+        return intermediateKeyStorePassword;
+    }
+
+    public void setIntermediateKeyStorePassword(String intermediateKeyStorePassword) {
+        this.intermediateKeyStorePassword = intermediateKeyStorePassword;
+    }
+
+    public String getEndEntityKeyStorePassword() {
+        return endEntityKeyStorePassword;
+    }
+
+    public void setEndEntityKeyStorePassword(String endEntityKeyStorePassword) {
+        this.endEntityKeyStorePassword = endEntityKeyStorePassword;
+    }
+
+    public Integer getRootYears() {
+        return rootYears;
+    }
+
+    public void setRootYears(Integer rootYears) {
+        this.rootYears = rootYears;
+    }
+
+    public Integer getIntermediateYears() {
+        return intermediateYears;
+    }
+
+    public void setIntermediateYears(Integer intermediateYears) {
+        this.intermediateYears = intermediateYears;
+    }
+
+    public Integer getEndEntityYears() {
+        return endEntityYears;
+    }
+
+    public void setEndEntityYears(Integer endEntityYears) {
+        this.endEntityYears = endEntityYears;
+    }
 
 }

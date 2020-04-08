@@ -8,7 +8,6 @@ import com.tingle.tingle.domain.enums.Role;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.FileNotFoundException;
 import java.security.*;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
@@ -33,23 +32,26 @@ public class KeyStoreService {
     @Autowired
     private CertificateService certificateService;
 
+    @Autowired
+    private KeyStoreConfig config;
+
 
 
     public void saveCertificate(X509Certificate certificate, String alias, PrivateKey privateKey, Role role) {
 
         if(role == Role.ROOT) {
-            keyStoreWriter.loadKeyStore(KeyStoreConfig.ROOT_KEYSTORE_LOCATION, KeyStoreConfig.ROOT_KEYSTORE_PASSWORD.toCharArray());
+            keyStoreWriter.loadKeyStore(config.getRootKeyStoreLocation(), config.getRootKeyStorePassword().toCharArray());
             //certificate password is the same as keystore password
-            keyStoreWriter.write(alias, privateKey, KeyStoreConfig.ROOT_KEYSTORE_PASSWORD.toCharArray(), certificate);
-            keyStoreWriter.saveKeyStore(KeyStoreConfig.ROOT_KEYSTORE_LOCATION, KeyStoreConfig.ROOT_KEYSTORE_PASSWORD.toCharArray());
+            keyStoreWriter.write(alias, privateKey, config.getRootKeyStorePassword().toCharArray(), certificate);
+            keyStoreWriter.saveKeyStore(config.getRootKeyStoreLocation(), config.getRootKeyStorePassword().toCharArray());
         } else if(role == Role.INTERMEDIATE) {
-            keyStoreWriter.loadKeyStore(KeyStoreConfig.INTERMEDIATE_KEYSTORE_LOCATION, KeyStoreConfig.INTERMEDIATE_KEYSTORE_PASSWORD.toCharArray());
-            keyStoreWriter.write(alias, privateKey, KeyStoreConfig.INTERMEDIATE_KEYSTORE_PASSWORD.toCharArray(), certificate);
-            keyStoreWriter.saveKeyStore(KeyStoreConfig.INTERMEDIATE_KEYSTORE_LOCATION, KeyStoreConfig.INTERMEDIATE_KEYSTORE_PASSWORD.toCharArray());
+            keyStoreWriter.loadKeyStore(config.getIntermediateKeyStoreLocation(), config.getIntermediateKeyStorePassword().toCharArray());
+            keyStoreWriter.write(alias, privateKey, config.getIntermediateKeyStorePassword().toCharArray(), certificate);
+            keyStoreWriter.saveKeyStore(config.getIntermediateKeyStoreLocation(), config.getIntermediateKeyStorePassword().toCharArray());
         } else {
-            keyStoreWriter.loadKeyStore(KeyStoreConfig.END_ENTITY_KEYSTORE_LOCATION, KeyStoreConfig.END_ENTITY_KEYSTORE_PASSWORD.toCharArray());
-            keyStoreWriter.write(alias, privateKey, KeyStoreConfig.END_ENTITY_KEYSTORE_PASSWORD.toCharArray(), certificate);
-            keyStoreWriter.saveKeyStore(KeyStoreConfig.END_ENTITY_KEYSTORE_LOCATION, KeyStoreConfig.END_ENTITY_KEYSTORE_PASSWORD.toCharArray());
+            keyStoreWriter.loadKeyStore(config.getEndEntityKeyStoreLocation(), config.getEndEntityKeyStorePassword().toCharArray());
+            keyStoreWriter.write(alias, privateKey, config.getEndEntityKeyStorePassword().toCharArray(), certificate);
+            keyStoreWriter.saveKeyStore(config.getEndEntityKeyStoreLocation(), config.getEndEntityKeyStorePassword().toCharArray());
         }
     }
 
@@ -62,13 +64,13 @@ public class KeyStoreService {
     public List<X509Certificate> findKeyStoreCertificates(Role certificateRole) {
 
         List<Certificate> rootCerts = keyStoreReader.readAllCertificates(
-                KeyStoreConfig.ROOT_KEYSTORE_LOCATION, KeyStoreConfig.ROOT_KEYSTORE_PASSWORD.toCharArray());
+                config.getRootKeyStoreLocation(), config.getRootKeyStorePassword().toCharArray());
 
         List<Certificate> intermediateCerts = keyStoreReader.readAllCertificates(
-                KeyStoreConfig.INTERMEDIATE_KEYSTORE_LOCATION, KeyStoreConfig.INTERMEDIATE_KEYSTORE_PASSWORD.toCharArray());
+                config.getIntermediateKeyStoreLocation(), config.getIntermediateKeyStorePassword().toCharArray());
 
         List<Certificate> endEntityCerts = keyStoreReader.readAllCertificates(
-                KeyStoreConfig.END_ENTITY_KEYSTORE_LOCATION, KeyStoreConfig.END_ENTITY_KEYSTORE_PASSWORD.toCharArray());
+                config.getEndEntityKeyStoreLocation(), config.getEndEntityKeyStorePassword().toCharArray());
 
         if(certificateRole != null) {
             if (certificateRole == Role.ROOT) {
@@ -96,16 +98,16 @@ public class KeyStoreService {
      * @param: dto: DTO sent from frontend
      *  */
     public void generateRootKeyStore(CertificateX500NameDTO dto) throws CertificateException, ParseException, NoSuchAlgorithmException, SignatureException, NoSuchProviderException, InvalidKeyException {
-        keyStoreWriter.loadKeyStore(null, KeyStoreConfig.ROOT_KEYSTORE_PASSWORD.toCharArray());
+        keyStoreWriter.loadKeyStore(null, config.getRootKeyStorePassword().toCharArray());
 
         certificateService.generateSelfSignedCertificate(dto);
 
         //sacuvaj stanje keystora
-        keyStoreWriter.saveKeyStore(KeyStoreConfig.ROOT_KEYSTORE_LOCATION, KeyStoreConfig.ROOT_KEYSTORE_PASSWORD.toCharArray());
+        keyStoreWriter.saveKeyStore(config.getRootKeyStoreLocation(), config.getRootKeyStorePassword().toCharArray());
     }
 
     public void generateCAKeyStore(CertificateX500NameDTO dto) {
-        keyStoreWriter.loadKeyStore(KeyStoreConfig.INTERMEDIATE_KEYSTORE_LOCATION, KeyStoreConfig.INTERMEDIATE_KEYSTORE_PASSWORD.toCharArray());
+        keyStoreWriter.loadKeyStore(config.getIntermediateKeyStoreLocation(), config.getIntermediateKeyStorePassword().toCharArray());
 
         try {
             certificateService.generateCACertificate(dto);
@@ -113,7 +115,7 @@ public class KeyStoreService {
             e.printStackTrace();
         }
         //sacuvaj stanje keystora
-        keyStoreWriter.saveKeyStore(KeyStoreConfig.INTERMEDIATE_KEYSTORE_LOCATION, KeyStoreConfig.INTERMEDIATE_KEYSTORE_PASSWORD.toCharArray());
+        keyStoreWriter.saveKeyStore(config.getIntermediateKeyStoreLocation(), config.getIntermediateKeyStorePassword().toCharArray());
     }
 
     /**
@@ -123,7 +125,7 @@ public class KeyStoreService {
     public void generateEndEntityKeyStore(EndEntityDTO ee_dto) throws CertificateException, ParseException, NoSuchAlgorithmException, SignatureException, NoSuchProviderException, InvalidKeyException {
     	System.out.println("==== MAKING NEW END ENTITY CERTIFICATE ====");
 
-    	keyStoreWriter.loadKeyStore(null, KeyStoreConfig.END_ENTITY_KEYSTORE_PASSWORD.toCharArray());
+    	keyStoreWriter.loadKeyStore(null, config.getEndEntityKeyStorePassword().toCharArray());
 
     	CertificateX500NameDTO subject = ee_dto.getSubject();
     	CertificateX500NameDTO issuer = ee_dto.getIssuer();
@@ -136,7 +138,7 @@ public class KeyStoreService {
 		}
 
         //sacuvaj stanje keystora
-        keyStoreWriter.saveKeyStore(KeyStoreConfig.END_ENTITY_KEYSTORE_LOCATION, KeyStoreConfig.END_ENTITY_KEYSTORE_PASSWORD.toCharArray());
+        keyStoreWriter.saveKeyStore(config.getEndEntityKeyStoreLocation(), config.getEndEntityKeyStorePassword().toCharArray());
     }
 
 
@@ -151,14 +153,14 @@ public class KeyStoreService {
         String keyStorePassword = "";
 
         if(role == Role.ROOT) {
-            keyStoreLocation = KeyStoreConfig.ROOT_KEYSTORE_LOCATION;
-            keyStorePassword = KeyStoreConfig.ROOT_KEYSTORE_PASSWORD;
+            keyStoreLocation = config.getRootKeyStoreLocation();
+            keyStorePassword = config.getRootKeyStorePassword();
         } else if(role == Role.INTERMEDIATE) {
-            keyStoreLocation = KeyStoreConfig.INTERMEDIATE_KEYSTORE_LOCATION;
-            keyStorePassword = KeyStoreConfig.INTERMEDIATE_KEYSTORE_PASSWORD;
+            keyStoreLocation = config.getIntermediateKeyStoreLocation();
+            keyStorePassword = config.getIntermediateKeyStorePassword();
         } else {
-            keyStoreLocation = KeyStoreConfig.END_ENTITY_KEYSTORE_LOCATION;
-            keyStorePassword = KeyStoreConfig.END_ENTITY_KEYSTORE_PASSWORD;
+            keyStoreLocation = config.getEndEntityKeyStoreLocation();
+            keyStorePassword = config.getEndEntityKeyStorePassword();
         }
 
         return (X509Certificate) keyStoreReader.readCertificate(keyStoreLocation, keyStorePassword, alias);
@@ -168,14 +170,23 @@ public class KeyStoreService {
     /** returns null if it can't find the certificate */
     public X509Certificate findCertificate(String alias) {
 
-        X509Certificate x509 = (X509Certificate) keyStoreReader.readCertificate(KeyStoreConfig.ROOT_KEYSTORE_LOCATION, KeyStoreConfig.ROOT_KEYSTORE_PASSWORD, alias);
+        X509Certificate x509 = (X509Certificate) keyStoreReader.readCertificate(
+                config.getRootKeyStoreLocation(),
+                config.getRootKeyStorePassword(),
+                alias);
 
         if(x509 == null) {
-            x509 = (X509Certificate) keyStoreReader.readCertificate(KeyStoreConfig.INTERMEDIATE_KEYSTORE_LOCATION, KeyStoreConfig.INTERMEDIATE_KEYSTORE_PASSWORD, alias);
+            x509 = (X509Certificate) keyStoreReader.readCertificate(
+                    config.getIntermediateKeyStoreLocation(),
+                    config.getIntermediateKeyStorePassword(),
+                    alias);
         }
 
         if(x509 == null) {
-            x509 = (X509Certificate) keyStoreReader.readCertificate(KeyStoreConfig.END_ENTITY_KEYSTORE_LOCATION, KeyStoreConfig.END_ENTITY_KEYSTORE_PASSWORD, alias);
+            x509 = (X509Certificate) keyStoreReader.readCertificate(
+                    config.getEndEntityKeyStoreLocation(),
+                    config.getEndEntityKeyStorePassword(),
+                    alias);
         }
 
         return x509;

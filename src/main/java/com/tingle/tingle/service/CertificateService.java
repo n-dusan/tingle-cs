@@ -1,6 +1,5 @@
 package com.tingle.tingle.service;
 
-import com.tingle.tingle.config.CertificateConfig;
 import com.tingle.tingle.config.KeyStoreConfig;
 import com.tingle.tingle.domain.enums.CRLReason;
 import com.tingle.tingle.util.keystores.KeyStoreReader;
@@ -24,7 +23,6 @@ import com.tingle.tingle.domain.Certificate;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Base64;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.math.BigInteger;
 import java.security.*;
@@ -40,6 +38,9 @@ import javax.naming.InvalidNameException;
 
 @Service
 public class CertificateService {
+
+    @Autowired
+    private KeyStoreConfig config;
 
     @Autowired
     private CertificateRepository certificateRepository;
@@ -206,13 +207,13 @@ public class CertificateService {
                 //prvo ga citaj iz roota
                 IssuerData issuer;
 
-                issuer = keyStoreReader.readIssuerFromStore(KeyStoreConfig.ROOT_KEYSTORE_LOCATION,
-                            serialNumber, KeyStoreConfig.ROOT_KEYSTORE_PASSWORD.toCharArray(),
-                            KeyStoreConfig.ROOT_KEYSTORE_PASSWORD.toCharArray());
+                issuer = keyStoreReader.readIssuerFromStore(config.getRootKeyStoreLocation(),
+                            serialNumber, config.getRootKeyStorePassword().toCharArray(),
+                            config.getRootKeyStorePassword().toCharArray());
                 if(issuer == null) {
-                    issuer = keyStoreReader.readIssuerFromStore(KeyStoreConfig.INTERMEDIATE_KEYSTORE_LOCATION,
-                            serialNumber, KeyStoreConfig.INTERMEDIATE_KEYSTORE_PASSWORD.toCharArray(),
-                            KeyStoreConfig.INTERMEDIATE_KEYSTORE_PASSWORD.toCharArray());
+                    issuer = keyStoreReader.readIssuerFromStore(config.getIntermediateKeyStoreLocation(),
+                            serialNumber, config.getIntermediateKeyStorePassword().toCharArray(),
+                            config.getIntermediateKeyStorePassword().toCharArray());
                 }
 
                 SubjectData subject = generateSubjectData(dto);
@@ -245,13 +246,13 @@ public class CertificateService {
     	String keyStorePassword = "";
     	IssuerData issuer;
         System.out.println("issuer dto " + issuerDTO.getSerialNumber());
-        issuer = keyStoreReader.readIssuerFromStore(KeyStoreConfig.ROOT_KEYSTORE_LOCATION,
-                issuerDTO.getSerialNumber(), KeyStoreConfig.ROOT_KEYSTORE_PASSWORD.toCharArray(),
-                KeyStoreConfig.ROOT_KEYSTORE_PASSWORD.toCharArray());
+        issuer = keyStoreReader.readIssuerFromStore(config.getRootKeyStoreLocation(),
+                issuerDTO.getSerialNumber(), config.getRootKeyStorePassword().toCharArray(),
+                config.getRootKeyStorePassword().toCharArray());
         if(issuer == null) {
-            issuer = keyStoreReader.readIssuerFromStore(KeyStoreConfig.INTERMEDIATE_KEYSTORE_LOCATION,
-                    issuerDTO.getSerialNumber(), KeyStoreConfig.INTERMEDIATE_KEYSTORE_PASSWORD.toCharArray(),
-                    KeyStoreConfig.INTERMEDIATE_KEYSTORE_PASSWORD.toCharArray());
+            issuer = keyStoreReader.readIssuerFromStore(config.getIntermediateKeyStoreLocation(),
+                    issuerDTO.getSerialNumber(), config.getIntermediateKeyStorePassword().toCharArray(),
+                    config.getIntermediateKeyStorePassword().toCharArray());
         }
 
         X509Certificate cert = certificateGenerator.generateCertificate(subject, issuer, subjectDTO.getExtensions());
@@ -294,11 +295,11 @@ public class CertificateService {
 
         //based on role, set certificate expiration date
         if(dto.getCertificateRole() == Role.ROOT) {
-            cal.add(Calendar.YEAR, CertificateConfig.ROOT_YEARS);
+            cal.add(Calendar.YEAR, config.getRootYears());
         } else if(dto.getCertificateRole() == Role.INTERMEDIATE) {
-            cal.add(Calendar.YEAR, CertificateConfig.INTERMEDIATE_YEARS);
+            cal.add(Calendar.YEAR, config.getIntermediateYears());
         } else {
-            cal.add(Calendar.YEAR, CertificateConfig.END_ENTITY_YEARS);
+            cal.add(Calendar.YEAR, config.getEndEntityYears());
         }
 
         String endDateString = iso8601Formater.format(cal.getTime());
@@ -397,7 +398,6 @@ public class CertificateService {
      * - checks if the first chain element is valid (if it isn't expired)
      * - checks if the chain leads to root
      * */
-
     private boolean validate(X509Certificate certificate) {
 
         List<X509Certificate> cAJoined = findCACertificates();
@@ -454,15 +454,24 @@ public class CertificateService {
         String path = "";
 
         //prvo ga trazi u rootu
-        certificate = keyStoreReader.readCertificate(KeyStoreConfig.ROOT_KEYSTORE_LOCATION, KeyStoreConfig.ROOT_KEYSTORE_PASSWORD, serialNumber);
+        certificate = keyStoreReader.readCertificate(
+                config.getRootKeyStoreLocation(),
+                config.getRootKeyStorePassword(),
+                serialNumber);
         //nema ga u rootu, onda mozda u cA?
         if(certificate == null) {
-            certificate = keyStoreReader.readCertificate(KeyStoreConfig.INTERMEDIATE_KEYSTORE_LOCATION, KeyStoreConfig.INTERMEDIATE_KEYSTORE_PASSWORD, serialNumber);
+            certificate = keyStoreReader.readCertificate(
+                    config.getIntermediateKeyStoreLocation(),
+                    config.getIntermediateKeyStorePassword(),
+                    serialNumber);
             role = Role.INTERMEDIATE;
         }
         //nema ga ni u cA, onda je end entity.
         if(certificate == null) {
-            certificate = keyStoreReader.readCertificate(KeyStoreConfig.END_ENTITY_KEYSTORE_LOCATION, KeyStoreConfig.END_ENTITY_KEYSTORE_PASSWORD, serialNumber);
+            certificate = keyStoreReader.readCertificate(
+                    config.getEndEntityKeyStoreLocation(),
+                    config.getEndEntityKeyStorePassword(),
+                    serialNumber);
             role = Role.END_ENTITY;
         }
 
@@ -495,17 +504,14 @@ public class CertificateService {
     }
 
     public void revokeCertificate(String serialNumber, CRLReason reason) throws NoSuchProviderException, CertificateException, NoSuchAlgorithmException, InvalidKeyException {
-        
-        List<Certificate> allActiveCertificates = certificateRepository.findAllActive();
-        List<X509Certificate> allCertificates = keyStoreService.findKeyStoreCertificates(null);
 
-        allCertificates = allCertificates.stream()
-                .distinct()
-                .collect(Collectors.toList());
+        List<Certificate> allActiveCertificates = certificateRepository.findAllActive();
 
         for (Certificate allActiveCertificate : allActiveCertificates) {
 
             X509Certificate x509 = keyStoreService.findCertificate(allActiveCertificate.getSerialNumber());
+            List<X509Certificate> allCertificates = keyStoreService.findKeyStoreCertificates(null);
+
             X509Certificate[] chain = CConverter.buildPath(x509, allCertificates);
 
             for(int i = 0; i < chain.length; i++) {
