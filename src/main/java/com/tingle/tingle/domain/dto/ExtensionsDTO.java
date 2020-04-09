@@ -4,6 +4,7 @@ public class ExtensionsDTO {
 
     private BasicConstraintsDTO basicConstraints;
     private KeyUsageDTO keyUsage;
+    private ExtendedKeyUsageDTO extendedKeyUsage;
 
     public ExtensionsDTO() {}
 
@@ -22,4 +23,14 @@ public class ExtensionsDTO {
     public void setKeyUsage(KeyUsageDTO keyUsage) {
         this.keyUsage = keyUsage;
     }
+
+	public ExtendedKeyUsageDTO getExtendedKeyUsage() {
+		return extendedKeyUsage;
+	}
+
+	public void setExtendedKeyUsage(ExtendedKeyUsageDTO extendedKeyUsage) {
+		this.extendedKeyUsage = extendedKeyUsage;
+	}
+    
+    
 }
