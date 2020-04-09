@@ -1,39 +1,58 @@
 package com.tingle.tingle.service;
 
-import com.tingle.tingle.config.KeyStoreConfig;
-import com.tingle.tingle.domain.enums.CRLReason;
-import com.tingle.tingle.util.keystores.KeyStoreReader;
-import com.tingle.tingle.domain.certificates.CertificateGenerator;
-import com.tingle.tingle.domain.certificates.IssuerData;
-import com.tingle.tingle.domain.certificates.SubjectData;
-import com.tingle.tingle.domain.dto.CertificateDTO;
-import com.tingle.tingle.domain.dto.CertificateX500NameDTO;
-import com.tingle.tingle.domain.enums.OCSPResponse;
-import com.tingle.tingle.domain.enums.Role;
-import com.tingle.tingle.repository.CertificateRepository;
-import com.tingle.tingle.util.CConverter;
-import org.bouncycastle.asn1.x500.X500Name;
-import org.bouncycastle.asn1.x500.X500NameBuilder;
-import org.bouncycastle.asn1.x500.style.BCStyle;
-import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import com.tingle.tingle.domain.Certificate;
-
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.util.Base64;
-import java.io.FileOutputStream;
 import java.math.BigInteger;
-import java.security.*;
-import java.security.cert.*;
+import java.security.InvalidKeyException;
+import java.security.KeyPair;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.PrivateKey;
+import java.security.SecureRandom;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateExpiredException;
+import java.security.cert.CertificateNotYetValidException;
+import java.security.cert.X509Certificate;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.naming.InvalidNameException;
+
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x500.X500NameBuilder;
+import org.bouncycastle.asn1.x500.style.BCStyle;
+import org.bouncycastle.asn1.x509.BasicConstraints;
+import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.cert.CertIOException;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.tingle.tingle.config.KeyStoreConfig;
+import com.tingle.tingle.domain.Certificate;
+import com.tingle.tingle.domain.certificates.CertificateGenerator;
+import com.tingle.tingle.domain.certificates.IssuerData;
+import com.tingle.tingle.domain.certificates.SubjectData;
+import com.tingle.tingle.domain.dto.BasicConstraintsDTO;
+import com.tingle.tingle.domain.dto.CertificateDTO;
+import com.tingle.tingle.domain.dto.CertificateX500NameDTO;
+import com.tingle.tingle.domain.dto.ExtensionsDTO;
+import com.tingle.tingle.domain.enums.CRLReason;
+import com.tingle.tingle.domain.enums.OCSPResponse;
+import com.tingle.tingle.domain.enums.Role;
+import com.tingle.tingle.repository.CertificateRepository;
+import com.tingle.tingle.util.CConverter;
+import com.tingle.tingle.util.keystores.KeyStoreReader;
 
 
 @Service
@@ -99,8 +118,20 @@ public class CertificateService {
             X500Name subjName = new JcaX509CertificateHolder(certificate).getSubject();
             X500Name issuerName = new JcaX509CertificateHolder(certificate).getIssuer();
 
+            Extension basicConstraints = new JcaX509CertificateHolder(certificate).getExtension(Extension.basicConstraints);
+            BasicConstraints bc = BasicConstraints.getInstance(basicConstraints.getExtnValue().getOctets());
+            
+            BasicConstraintsDTO basicConstraintsDTO = new BasicConstraintsDTO();
+            basicConstraintsDTO.setCritical(basicConstraints.isCritical());
+            basicConstraintsDTO.setCertificateAuthority(bc.isCA());
+            
             CertificateX500NameDTO[] x509dto =  converter.convertFromX500Principals(subjName, issuerName);
 
+            //TODO attach Extensions to x509dto
+            ExtensionsDTO extensionsDTO = new ExtensionsDTO();           
+            extensionsDTO.setBasicConstraints(basicConstraintsDTO);
+            
+            x509dto[1].setExtensions(extensionsDTO);
             x509dto[1].setCertificateRole(certificateRole);
             x509dto[1].setSerialNumber(serialNumber);
 
@@ -109,7 +140,7 @@ public class CertificateService {
             e.printStackTrace();
         } catch (CertificateEncodingException e) {
             e.printStackTrace();
-        }
+        } 
         return null;
     }
 
@@ -166,8 +197,9 @@ public class CertificateService {
         @param dto: DTO primljen sa front-enda.
         Sadrzi sve podatke o kreiranju sertifikata
         U ovom slucaju, issuer i subject su ista firma
+     * @throws CertIOException 
      * */
-    public void generateSelfSignedCertificate(CertificateX500NameDTO dto) throws ParseException {
+    public void generateSelfSignedCertificate(CertificateX500NameDTO dto) throws ParseException, CertIOException {
 
         //keypair za subjekta i issuera je isti, jer je self-signed sertifikat
         SubjectData subject = generateSubjectData(dto);
@@ -240,7 +272,7 @@ public class CertificateService {
         }
     }
 
-    public void generateEndEntityCertificate(CertificateX500NameDTO subjectDTO, CertificateX500NameDTO issuerDTO) throws ParseException {
+    public void generateEndEntityCertificate(CertificateX500NameDTO subjectDTO, CertificateX500NameDTO issuerDTO) throws ParseException, CertIOException {
     	SubjectData subject = generateSubjectData(subjectDTO);
 
     	String keyStorePassword = "";

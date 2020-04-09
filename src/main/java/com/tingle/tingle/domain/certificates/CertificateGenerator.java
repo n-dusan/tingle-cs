@@ -8,12 +8,9 @@ import java.security.Security;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
 
-import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.x509.BasicConstraints;
 import org.bouncycastle.asn1.x509.Extension;
-import org.bouncycastle.asn1.x509.KeyUsage;
 import org.bouncycastle.cert.CertIOException;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
@@ -36,7 +33,7 @@ public class CertificateGenerator {
         Security.addProvider(new BouncyCastleProvider());
     }
 
-    public X509Certificate generateCertificate(SubjectData subjectData, IssuerData issuerData, ExtensionsDTO extensions) {
+    public X509Certificate generateCertificate(SubjectData subjectData, IssuerData issuerData, ExtensionsDTO extensions) throws CertIOException {
         try {
 
             JcaContentSignerBuilder builder = new JcaContentSignerBuilder("SHA256WithRSAEncryption");
@@ -50,27 +47,20 @@ public class CertificateGenerator {
                     subjectData.getEndDate(),
                     subjectData.getX500name(),
                     subjectData.getPublicKey());
-            X509CertificateHolder certHolder = certGen.build(contentSigner);
+            
 
-            //Ekstenzije za sertifikate (namenu i da li je CA ili nije)
-            // Basic Constraints
-//            BasicConstraintsDTO basicConstraintsDTO = extensions.getBasicConstraints();
-//            KeyUsageDTO keyUsageDTO = extensions.getKeyUsage();
+            //Ekstenzije 
+            BasicConstraintsDTO basicConstraintsDTO = extensions.getBasicConstraints();
+            KeyUsageDTO keyUsageDTO = extensions.getKeyUsage();
             
-//            BasicConstraints basicConstraints = new BasicConstraints(basicConstraintsDTO.isCertificateAuthority()); // <-- true for CA, false for EndEntity
-//
-//            certGen.addExtension(new ASN1ObjectIdentifier("2.5.29.19"), basicConstraintsDTO.isCritical(), basicConstraints); // Basic Constraints is usually marked as critical.
-//
-//            // loop through key usages and add them to cert
-//            ArrayList<KeyUsage> keyUsages = getListOfKeyUsages(keyUsageDTO);
-//            boolean isKeyUsageCritical = keyUsageDTO.isCritical();
-////            for(KeyUsage ku : keyUsages) {
-////            	certGen.addExtension(Extension.keyUsage, isKeyUsageCritical, ku);
-////            }
-            
+            BasicConstraints basicConstraints = new BasicConstraints(basicConstraintsDTO.isCertificateAuthority()); // <-- true for CA, false for EndEntity
+            certGen.addExtension(Extension.basicConstraints, basicConstraintsDTO.isCritical(), basicConstraints); // Basic Constraints is usually marked as critical.
+
             JcaX509CertificateConverter certConverter = new JcaX509CertificateConverter();
             certConverter = certConverter.setProvider("BC");
 
+            X509CertificateHolder certHolder = certGen.build(contentSigner);
+            
             return certConverter.getCertificate(certHolder);
         } catch (CertificateEncodingException e) {
             e.printStackTrace();
@@ -106,37 +96,5 @@ public class CertificateGenerator {
         return null;
     }
     
-    private ArrayList<KeyUsage> getListOfKeyUsages(KeyUsageDTO dto) {
-    	ArrayList<KeyUsage> ret = new ArrayList<KeyUsage>();
-    	
-    	if(dto.isDigitalSignature()) {
-    		ret.add(new KeyUsage(KeyUsage.digitalSignature));
-    	}
-    	if(dto.isNonRepudation()) {
-    		ret.add(new KeyUsage(KeyUsage.nonRepudiation));
-    	}
-    	if(dto.isKeyEncipherment()) {
-    		ret.add(new KeyUsage(KeyUsage.keyEncipherment));
-    	}
-    	if(dto.isDataEncipherment()) {
-    		ret.add(new KeyUsage(KeyUsage.dataEncipherment));
-    	}
-    	if(dto.isKeyAgreement()) {
-    		ret.add(new KeyUsage(KeyUsage.keyAgreement));
-    	}
-    	if(dto.isKeyCertSign()) {
-    		ret.add(new KeyUsage(KeyUsage.keyCertSign));
-    	}
-    	if(dto.isCrlSign()) {
-    		ret.add(new KeyUsage(KeyUsage.cRLSign));
-    	}
-    	if(dto.isEncipherOnly()) {
-    		ret.add(new KeyUsage(KeyUsage.encipherOnly));
-    	}
-    	if(dto.isDecipherOnly()) {
-    		ret.add(new KeyUsage(KeyUsage.decipherOnly));
-    	}
-    	
-    	return ret;
-    }
+   
 }

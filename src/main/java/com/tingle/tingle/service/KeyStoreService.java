@@ -5,6 +5,8 @@ import com.tingle.tingle.util.keystores.KeyStoreReader;
 import com.tingle.tingle.util.keystores.KeyStoreWriter;
 import com.tingle.tingle.domain.dto.CertificateX500NameDTO;
 import com.tingle.tingle.domain.enums.Role;
+
+import org.bouncycastle.cert.CertIOException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -100,7 +102,12 @@ public class KeyStoreService {
     public void generateRootKeyStore(CertificateX500NameDTO dto) throws CertificateException, ParseException, NoSuchAlgorithmException, SignatureException, NoSuchProviderException, InvalidKeyException {
         keyStoreWriter.loadKeyStore(null, config.getRootKeyStorePassword().toCharArray());
 
-        certificateService.generateSelfSignedCertificate(dto);
+        try {
+			certificateService.generateSelfSignedCertificate(dto);
+		} catch (CertIOException e) {
+			System.out.println("ERROR DURING GENERATING CERTIFICATE");
+			e.printStackTrace();
+		}
 
         //sacuvaj stanje keystora
         keyStoreWriter.saveKeyStore(config.getRootKeyStoreLocation(), config.getRootKeyStorePassword().toCharArray());
