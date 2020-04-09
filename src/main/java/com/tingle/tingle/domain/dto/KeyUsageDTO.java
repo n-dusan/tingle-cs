@@ -16,6 +16,18 @@ public class KeyUsageDTO {
 
     public KeyUsageDTO() {}
 
+    public void setUsages(boolean[] usages) {
+    	this.setDigitalSignature(usages[0]);
+    	this.setNonRepudation(usages[1]);
+    	this.setKeyEncipherment(usages[2]);
+    	this.setDataEncipherment(usages[3]);
+    	this.setKeyAgreement(usages[4]);
+    	this.setKeyCertSign(usages[5]);
+    	this.setCrlSign(usages[6]);
+    	this.setEncipherOnly(usages[7]);
+    	this.setDecipherOnly(usages[8]);
+    }
+    
     public boolean isCritical() {
         return critical;
     }

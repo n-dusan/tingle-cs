@@ -123,26 +123,16 @@ public class CertificateService {
             // Basic Constraints
             Extension basicConstraints = new JcaX509CertificateHolder(certificate).getExtension(Extension.basicConstraints);
             BasicConstraints bc = BasicConstraints.getInstance(basicConstraints.getExtnValue().getOctets());
-            
             BasicConstraintsDTO basicConstraintsDTO = new BasicConstraintsDTO();
             basicConstraintsDTO.setCritical(basicConstraints.isCritical());
             basicConstraintsDTO.setCertificateAuthority(bc.isCA());
             
             // Key Usage
             Extension keyUsage = new JcaX509CertificateHolder(certificate).getExtension(Extension.keyUsage);
-            boolean[] usages = certificate.getKeyUsage();
-            
             KeyUsageDTO keyUsageDTO = new KeyUsageDTO();
             keyUsageDTO.setCritical(keyUsage.isCritical());
-            keyUsageDTO.setDigitalSignature(usages[0]);
-            keyUsageDTO.setNonRepudation(usages[1]);
-            keyUsageDTO.setKeyEncipherment(usages[2]);
-            keyUsageDTO.setDataEncipherment(usages[3]);
-            keyUsageDTO.setKeyAgreement(usages[4]);
-            keyUsageDTO.setKeyCertSign(usages[5]);
-            keyUsageDTO.setCrlSign(usages[6]);
-            keyUsageDTO.setEncipherOnly(usages[7]);
-            keyUsageDTO.setDecipherOnly(usages[8]);
+            keyUsageDTO.setUsages(certificate.getKeyUsage());
+            
             
             // TODO attach other extensions
             ExtensionsDTO extensionsDTO = new ExtensionsDTO();           
