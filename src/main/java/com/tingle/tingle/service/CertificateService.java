@@ -479,7 +479,7 @@ public class CertificateService {
         FileOutputStream os = null;
         try {
 
-            path = "./.jks/"+ role.toString() + "-" + serialNumber + ".cer";
+            path = "./.ks/"+ role.toString() + "-" + serialNumber + ".cer";
 
             os = new FileOutputStream(path);
             os.write("--BEGIN CERTIFICATE--\n".getBytes("US-ASCII"));

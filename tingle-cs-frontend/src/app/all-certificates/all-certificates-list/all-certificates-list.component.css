@@ -1,6 +1,5 @@
 table {
     width: 100%;
-    margin-left: 50px;
   }
 
 tr {
@@ -18,5 +17,9 @@ tr {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.mat-radio-button ~ .mat-radio-button {
+  margin-left: 16px;
 }
 

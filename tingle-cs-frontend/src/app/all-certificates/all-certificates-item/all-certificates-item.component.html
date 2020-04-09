@@ -1,7 +1,10 @@
 <mat-card class="matcard" fxFlex="80%">
 
+  <div class="spinner-container" *ngIf="isLoading"> 
+    <mat-spinner ></mat-spinner>
+  </div>
 
-  <mat-card-header>
+  <mat-card-header *ngIf="!isLoading">
     <mat-card-title>Certificate details - {{ selectedCertificate[1].serialNumber }}</mat-card-title>
   </mat-card-header>
   <mat-card-content>
