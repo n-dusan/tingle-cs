@@ -33,6 +33,7 @@ import org.bouncycastle.asn1.x500.X500NameBuilder;
 import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.bouncycastle.asn1.x509.BasicConstraints;
 import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.asn1.x509.KeyUsage;
 import org.bouncycastle.cert.CertIOException;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +48,7 @@ import com.tingle.tingle.domain.dto.BasicConstraintsDTO;
 import com.tingle.tingle.domain.dto.CertificateDTO;
 import com.tingle.tingle.domain.dto.CertificateX500NameDTO;
 import com.tingle.tingle.domain.dto.ExtensionsDTO;
+import com.tingle.tingle.domain.dto.KeyUsageDTO;
 import com.tingle.tingle.domain.enums.CRLReason;
 import com.tingle.tingle.domain.enums.OCSPResponse;
 import com.tingle.tingle.domain.enums.Role;
@@ -118,6 +120,7 @@ public class CertificateService {
             X500Name subjName = new JcaX509CertificateHolder(certificate).getSubject();
             X500Name issuerName = new JcaX509CertificateHolder(certificate).getIssuer();
 
+            // Basic Constraints
             Extension basicConstraints = new JcaX509CertificateHolder(certificate).getExtension(Extension.basicConstraints);
             BasicConstraints bc = BasicConstraints.getInstance(basicConstraints.getExtnValue().getOctets());
             
@@ -125,12 +128,28 @@ public class CertificateService {
             basicConstraintsDTO.setCritical(basicConstraints.isCritical());
             basicConstraintsDTO.setCertificateAuthority(bc.isCA());
             
-            CertificateX500NameDTO[] x509dto =  converter.convertFromX500Principals(subjName, issuerName);
-
-            //TODO attach Extensions to x509dto
+            // Key Usage
+            Extension keyUsage = new JcaX509CertificateHolder(certificate).getExtension(Extension.keyUsage);
+            boolean[] usages = certificate.getKeyUsage();
+            
+            KeyUsageDTO keyUsageDTO = new KeyUsageDTO();
+            keyUsageDTO.setCritical(keyUsage.isCritical());
+            keyUsageDTO.setDigitalSignature(usages[0]);
+            keyUsageDTO.setNonRepudation(usages[1]);
+            keyUsageDTO.setKeyEncipherment(usages[2]);
+            keyUsageDTO.setDataEncipherment(usages[3]);
+            keyUsageDTO.setKeyAgreement(usages[4]);
+            keyUsageDTO.setKeyCertSign(usages[5]);
+            keyUsageDTO.setCrlSign(usages[6]);
+            keyUsageDTO.setEncipherOnly(usages[7]);
+            keyUsageDTO.setDecipherOnly(usages[8]);
+            
+            // TODO attach other extensions
             ExtensionsDTO extensionsDTO = new ExtensionsDTO();           
             extensionsDTO.setBasicConstraints(basicConstraintsDTO);
+            extensionsDTO.setKeyUsage(keyUsageDTO);
             
+            CertificateX500NameDTO[] x509dto =  converter.convertFromX500Principals(subjName, issuerName);
             x509dto[1].setExtensions(extensionsDTO);
             x509dto[1].setCertificateRole(certificateRole);
             x509dto[1].setSerialNumber(serialNumber);
