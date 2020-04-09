@@ -120,24 +120,10 @@ public class CertificateService {
             X500Name subjName = new JcaX509CertificateHolder(certificate).getSubject();
             X500Name issuerName = new JcaX509CertificateHolder(certificate).getIssuer();
 
-            // Basic Constraints
-            Extension basicConstraints = new JcaX509CertificateHolder(certificate).getExtension(Extension.basicConstraints);
-            BasicConstraints bc = BasicConstraints.getInstance(basicConstraints.getExtnValue().getOctets());
-            BasicConstraintsDTO basicConstraintsDTO = new BasicConstraintsDTO();
-            basicConstraintsDTO.setCritical(basicConstraints.isCritical());
-            basicConstraintsDTO.setCertificateAuthority(bc.isCA());
-            
-            // Key Usage
-            Extension keyUsage = new JcaX509CertificateHolder(certificate).getExtension(Extension.keyUsage);
-            KeyUsageDTO keyUsageDTO = new KeyUsageDTO();
-            keyUsageDTO.setCritical(keyUsage.isCritical());
-            keyUsageDTO.setUsages(certificate.getKeyUsage());
-            
-            
             // TODO attach other extensions
             ExtensionsDTO extensionsDTO = new ExtensionsDTO();           
-            extensionsDTO.setBasicConstraints(basicConstraintsDTO);
-            extensionsDTO.setKeyUsage(keyUsageDTO);
+            extensionsDTO.setBasicConstraints(generateBasicConstraints(certificate));
+            extensionsDTO.setKeyUsage(generateKeyUsage(certificate));
             
             CertificateX500NameDTO[] x509dto =  converter.convertFromX500Principals(subjName, issuerName);
             x509dto[1].setExtensions(extensionsDTO);
@@ -153,6 +139,26 @@ public class CertificateService {
         return null;
     }
 
+    
+    private BasicConstraintsDTO generateBasicConstraints(X509Certificate certificate) throws CertificateEncodingException {
+    	BasicConstraintsDTO ret = new BasicConstraintsDTO();
+    	Extension basicConstraints = new JcaX509CertificateHolder(certificate).getExtension(Extension.basicConstraints);
+        BasicConstraints bc = BasicConstraints.getInstance(basicConstraints.getExtnValue().getOctets());
+        ret.setCritical(basicConstraints.isCritical());
+        ret.setCertificateAuthority(bc.isCA());
+        
+    	return ret;
+    }
+    
+    private KeyUsageDTO generateKeyUsage(X509Certificate certificate) throws CertificateEncodingException {
+    	Extension keyUsage = new JcaX509CertificateHolder(certificate).getExtension(Extension.keyUsage);
+        KeyUsageDTO ret = new KeyUsageDTO();
+        ret.setCritical(keyUsage.isCritical());
+        ret.setUsages(certificate.getKeyUsage());
+        
+        return ret;
+    }
+    
     /**
      * Returns data of all CA's in the system.
      * validated :)
