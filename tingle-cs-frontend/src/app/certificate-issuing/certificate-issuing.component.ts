@@ -18,12 +18,15 @@ export class CertificateIssuingComponent implements OnInit {
   isLinear = true;
   spin = false;
   success = false;
-  isFirstTemplateSelected = false;
-  isSecondTemplateSelected = false;
-  isThirdTemplateSelected = false;
-  isFirstFourthTemplateSelected = false;
-  isFourthTemplateSelected = false;
-  isSixthTemplateSelected = false;
+  isDSSelected = false;
+  isKESelected = false;
+  isNESelected = false;
+  isDESelected = false;
+  isKASelected = false;
+  isKCSSelected = false;
+  isCRLSelected = false;
+  isEncSelected = false;
+  isDecSelected = false;
   firstFormGroup: FormGroup;
   secondFormGroup: FormGroup;
   thirdFormGroup: FormGroup;
@@ -205,56 +208,75 @@ export class CertificateIssuingComponent implements OnInit {
   }
 
   selectFirstTemplate(){
-    this.isFirstTemplateSelected = true;
-    this.isFirstFourthTemplateSelected = true;
-    this.isSecondTemplateSelected = false;
-    this.isThirdTemplateSelected = false;
-    this.isFourthTemplateSelected = false;
-    this.isSixthTemplateSelected = false;
+    this.isDSSelected = true;
+    this.isKASelected = true;
+    this.isKESelected = false;
+    this.isNESelected = false;
+    this.isDESelected = false;
+    this.isKCSSelected = false;
+    this.isCRLSelected = false;
+    this.isEncSelected = false;
+    this.isDecSelected = false;
   }
 
   selectSecondTemplate(){
-    this.isFirstTemplateSelected = false;
-    this.isSecondTemplateSelected = true;
-    this.isThirdTemplateSelected = false;
-    this.isFirstFourthTemplateSelected = false;
-    this.isFourthTemplateSelected = false;
-    this.isSixthTemplateSelected = false;
+    this.isDSSelected = false;
+    this.isKASelected = false;
+    this.isKESelected = false;
+    this.isNESelected = false;
+    this.isDESelected = false;
+    this.isKCSSelected = true;
+    this.isCRLSelected = true;
+    this.isEncSelected = false;
+    this.isDecSelected = false;
   }
 
   selectThirdTemplate(){
-    this.isFirstTemplateSelected = false;
-    this.isSecondTemplateSelected = false;
-    this.isThirdTemplateSelected = true;
-    this.isFirstFourthTemplateSelected = false;
-    this.isFourthTemplateSelected = false;
-    this.isSixthTemplateSelected = false;
+    this.isDSSelected = false;
+    this.isKASelected = false;
+    this.isKESelected = false;
+    this.isNESelected = true;
+    this.isDESelected = true;
+    this.isKCSSelected = false;
+    this.isCRLSelected = false;
+    this.isEncSelected = false;
+    this.isDecSelected = false;
   }
 
   selectFourthTemplate(){
-    this.isFirstFourthTemplateSelected = true;
-    this.isFourthTemplateSelected = true;
-    this.isSecondTemplateSelected = false;
-    this.isThirdTemplateSelected = false;
-    this.isFirstTemplateSelected = false;
-    this.isSixthTemplateSelected = false;
+    this.isDSSelected = false;
+    this.isKASelected = true;
+    this.isKESelected = false;
+    this.isNESelected = false;
+    this.isDESelected = false;
+    this.isKCSSelected = false;
+    this.isCRLSelected = false;
+    this.isEncSelected = true;
+    this.isDecSelected = true;
   }
 
   selectFifthTemplate(){
-    this.isFirstTemplateSelected = true;
-    this.isSecondTemplateSelected = false;
-    this.isThirdTemplateSelected = false;
-    this.isFirstFourthTemplateSelected = false;
-    this.isFourthTemplateSelected = false;
+    this.isDSSelected = true;
+    this.isKASelected = false;
+    this.isKESelected = false;
+    this.isNESelected = false;
+    this.isDESelected = false;
+    this.isKCSSelected = false;
+    this.isCRLSelected = false;
+    this.isEncSelected = false;
+    this.isDecSelected = false;
   }
 
   selectSixthTemplate(){
-    this.isFirstTemplateSelected = true;
-    this.isSixthTemplateSelected = true;
-    this.isSecondTemplateSelected = false;
-    this.isThirdTemplateSelected = false;
-    this.isFourthTemplateSelected = false;
-    this.isFirstFourthTemplateSelected = false;
+    this.isDSSelected = true;
+    this.isKASelected = false;
+    this.isKESelected = true;
+    this.isNESelected = false;
+    this.isDESelected = false;
+    this.isKCSSelected = false;
+    this.isCRLSelected = false;
+    this.isEncSelected = false;
+    this.isDecSelected = false;
   }
 
   attachExtensions(): Extensions {

@@ -25,6 +25,7 @@
     "bootstrap": "^4.4.1",
     "ngx-notification": "^1.0.5",
     "particles.js": "^2.0.0",
+    "particlesjs": "^2.2.3",
     "rxjs": "~6.5.4",
     "tslib": "^1.10.0",
     "zone.js": "~0.10.2"
