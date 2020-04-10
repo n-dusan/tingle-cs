@@ -1,7 +1,10 @@
-import { Component, OnInit, OnDestroy, Output } from '@angular/core';
+import { Component, OnInit, OnDestroy, Output, ViewChild } from '@angular/core';
 import { Certificate } from '../../shared/certificate.model';
 import { CertificatesService } from '../certificates.service';
 import { Subscription } from 'rxjs';
+import { MatPaginator } from '@angular/material/paginator';
+import { MatTableDataSource } from '@angular/material/table';
+
 
 @Component({
   selector: 'app-all-certificates-list',
@@ -10,20 +13,37 @@ import { Subscription } from 'rxjs';
 })
 export class AllCertificatesListComponent implements OnInit, OnDestroy {
 
+  //all certificates, fetched from service
   certificates: Certificate[];
   private subscription: Subscription;
 
+  //array of certificates displayed based on radio button filter
+  displayedCertificates: Certificate[];
 
-  displayedColumns: string[] = ['serial number', 'active', 'certificate authority'];
+  displayedColumns: string[] = ['serial number', 'active', 'certificate authority', 'radio'];
+  
+  filterTypes: string[] = ['All', 'Active', 'Inactive'];
+  selectedFilter: string = 'All';
+
+  dataSource: MatTableDataSource<Certificate> = new MatTableDataSource;
+
+  @ViewChild(MatPaginator, {static: true}) paginator: MatPaginator;
+
   isLoadingResults: boolean = true;
   
   constructor(private certificateService: CertificatesService) { }
 
   ngOnInit(): void {
-     this.subscription =  this.certificateService.getCertificates().subscribe((data: Certificate[]) => {
-        this.certificates = data;
-        this.isLoadingResults = false;
-      })
+    this.dataSource.data = [];
+
+    this.subscription =  this.certificateService.getCertificates().subscribe((data: Certificate[]) => {
+      this.certificates = data;
+      this.isLoadingResults = false;
+      //update datasource
+      this.dataSource.data = this.certificates;
+      //initialize paginator only after the datasource
+      this.dataSource.paginator = this.paginator;
+    })
   }
 
   onCertificateDetails(certificate: Certificate) {
@@ -33,6 +53,21 @@ export class AllCertificatesListComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.subscription.unsubscribe();
+  }
+
+  handleChange() {
+    if(this.selectedFilter === 'All') {
+      this.dataSource.data = this.certificates;
+    } else if(this.selectedFilter === 'Active') {
+      this.dataSource.data = this.certificates.filter(cert => {
+        if(cert.active) { return cert; }
+      })
+    } else {
+      this.dataSource.data = this.certificates.filter(cert => {
+        if(!cert.active) { return cert; }
+      })
+    }
+
   }
 
 }
