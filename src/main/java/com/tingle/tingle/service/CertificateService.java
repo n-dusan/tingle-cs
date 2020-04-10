@@ -14,6 +14,7 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateExpiredException;
 import java.security.cert.CertificateNotYetValidException;
+import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -47,6 +48,7 @@ import com.tingle.tingle.domain.certificates.SubjectData;
 import com.tingle.tingle.domain.dto.BasicConstraintsDTO;
 import com.tingle.tingle.domain.dto.CertificateDTO;
 import com.tingle.tingle.domain.dto.CertificateX500NameDTO;
+import com.tingle.tingle.domain.dto.ExtendedKeyUsageDTO;
 import com.tingle.tingle.domain.dto.ExtensionsDTO;
 import com.tingle.tingle.domain.dto.KeyUsageDTO;
 import com.tingle.tingle.domain.enums.CRLReason;
@@ -124,6 +126,7 @@ public class CertificateService {
             ExtensionsDTO extensionsDTO = new ExtensionsDTO();           
             extensionsDTO.setBasicConstraints(generateBasicConstraints(certificate));
             extensionsDTO.setKeyUsage(generateKeyUsage(certificate));
+            extensionsDTO.setExtendedKeyUsage(generateExtendedKeyUsage(certificate));
             
             CertificateX500NameDTO[] x509dto =  converter.convertFromX500Principals(subjName, issuerName);
             x509dto[1].setExtensions(extensionsDTO);
@@ -135,7 +138,12 @@ public class CertificateService {
             e.printStackTrace();
         } catch (CertificateEncodingException e) {
             e.printStackTrace();
-        } 
+        } catch (CertificateParsingException e) {
+			e.printStackTrace();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} 
         return null;
     }
 
@@ -157,6 +165,15 @@ public class CertificateService {
         ret.setUsages(certificate.getKeyUsage());
         
         return ret;
+    }
+    
+    private ExtendedKeyUsageDTO generateExtendedKeyUsage(X509Certificate certificate) throws Exception {
+    	Extension extendedKeyUsage = new JcaX509CertificateHolder(certificate).getExtension(Extension.extendedKeyUsage);
+    	ExtendedKeyUsageDTO ret = new ExtendedKeyUsageDTO();
+    	ret.setCritical(extendedKeyUsage.isCritical());
+    	ret.setUsages(certificate.getExtendedKeyUsage());
+    	
+    	return ret;
     }
     
     /**
