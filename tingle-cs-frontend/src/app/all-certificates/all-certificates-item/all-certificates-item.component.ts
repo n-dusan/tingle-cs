@@ -15,12 +15,12 @@ import { RevokeDialogComponent } from '../revoke-dialog/revoke-dialog.component'
 export class AllCertificatesItemComponent implements OnInit, OnDestroy {
   
   selectedCertificate: Certificate[];
-  
   private selectedSubscription: Subscription;
 
   serialNumber: any;
   downloadCert = false;
   showError = false;
+  isLoading = true;
 
   constructor(private certificateService: CertificatesService, private dialog: MatDialog) { }
 
@@ -37,6 +37,7 @@ export class AllCertificatesItemComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.selectedSubscription = this.certificateService.selectedCertificate.subscribe((data: Certificate[]) => {
       this.selectedCertificate = data;
+      this.isLoading = false;
     })
   }
 
