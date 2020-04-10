@@ -1,22 +1,27 @@
 package com.tingle.tingle.domain.certificates;
 import java.math.BigInteger;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
-import java.security.Security;
+import java.security.*;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
+import com.tingle.tingle.config.KeyStoreConfig;
+import com.tingle.tingle.domain.dto.*;
+import com.tingle.tingle.domain.enums.Role;
+import org.bouncycastle.asn1.x500.X500NameBuilder;
+import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.bouncycastle.asn1.x509.BasicConstraints;
 import org.bouncycastle.asn1.x509.ExtendedKeyUsage;
 import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.asn1.x509.KeyPurposeId;
 import org.bouncycastle.asn1.x509.KeyUsage;
+import org.bouncycastle.asn1.x509.SubjectKeyIdentifier;
+import org.bouncycastle.asn1.x509.AuthorityKeyIdentifier;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder;
+import org.bouncycastle.cert.jcajce.JcaX509ExtensionUtils;
 import org.bouncycastle.cert.CertIOException;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
@@ -26,15 +31,14 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import com.tingle.tingle.domain.dto.BasicConstraintsDTO;
-import com.tingle.tingle.domain.dto.ExtendedKeyUsageDTO;
-import com.tingle.tingle.domain.dto.ExtensionsDTO;
-import com.tingle.tingle.domain.dto.KeyUsageDTO;
 
 @Component
 public class CertificateGenerator {
+
+	@Autowired
+	private KeyStoreConfig config;
 
     public CertificateGenerator() {
         Security.addProvider(new BouncyCastleProvider());
@@ -73,8 +77,21 @@ public class CertificateGenerator {
             	ExtendedKeyUsage extendedKeyUsage = new ExtendedKeyUsage(extendedUsages);
             	certGen.addExtension(Extension.extendedKeyUsage, extendedKeyUsageDTO.isCritical(), extendedKeyUsage);
             }
-            
-            
+
+            //subject key identifier
+			//The SubjectKeyIdentifier extension is a standard X509v3 extension which MUST NOT be marked as being critical. .
+			JcaX509ExtensionUtils extensionUtils = new JcaX509ExtensionUtils();
+            SubjectKeyIdentifier subjectKeyIdentifier = extensionUtils.createSubjectKeyIdentifier(subjectData.getPublicKey());
+			certGen.addExtension(Extension.subjectKeyIdentifier, false, subjectKeyIdentifier);
+
+
+			//authority key identifier
+			//if publicKey isn't null means we aren't a self-signed certificate, so we fill out the authority key identifier
+			if(issuerData.getPublicKey() != null) {
+				AuthorityKeyIdentifier authorityKeyIdentifier = extensionUtils.createAuthorityKeyIdentifier(issuerData.getPublicKey());
+				certGen.addExtension(Extension.authorityKeyIdentifier, false, authorityKeyIdentifier);
+			}
+
             JcaX509CertificateConverter certConverter = new JcaX509CertificateConverter();
             certConverter = certConverter.setProvider("BC");
 
@@ -91,8 +108,10 @@ public class CertificateGenerator {
             e.printStackTrace();
         } catch (CertificateException e) {
             e.printStackTrace();
-        }
-        return null;
+        } catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+		}
+		return null;
     }
 
     public KeyPair generateKeyPair(boolean isCertificateAuthority) {
@@ -178,4 +197,116 @@ public class CertificateGenerator {
     	thoseWhoAreTrue.toArray(ret); // fill the array
     	return ret;
     }
+
+
+	public SubjectData generateSubjectData(CertificateX500NameDTO dto) throws ParseException {
+
+		// based on role, generate RSA key pair length
+		KeyPair keyPair;
+
+		if (dto.getCertificateRole() == Role.ROOT || dto.getCertificateRole() == Role.INTERMEDIATE) {
+			keyPair = generateKeyPair(true);
+		} else {
+			keyPair = generateKeyPair(false);
+		}
+
+		// Datumi od kad do kad vazi sertifikat
+		Calendar cal = new GregorianCalendar();
+		SimpleDateFormat iso8601Formater = new SimpleDateFormat("dd-MM-yyyy");
+		iso8601Formater.setTimeZone(cal.getTimeZone());
+
+		String startDateString = iso8601Formater.format(cal.getTime());
+
+		// based on role, set certificate expiration date
+		if (dto.getCertificateRole() == Role.ROOT) {
+			cal.add(Calendar.YEAR, config.getRootYears());
+		} else if (dto.getCertificateRole() == Role.INTERMEDIATE) {
+			cal.add(Calendar.YEAR, config.getIntermediateYears());
+		} else {
+			cal.add(Calendar.YEAR, config.getEndEntityYears());
+		}
+
+		String endDateString = iso8601Formater.format(cal.getTime());
+
+		System.out.println("Start date: " + startDateString);
+		System.out.println("End date: " + endDateString);
+
+		Date startDate = iso8601Formater.parse(startDateString);
+		Date endDate = iso8601Formater.parse(endDateString);
+
+		// Serial number je vazan, za sad JAKO VELIKI random broj
+		BigInteger upperLimit = new BigInteger("1000000000000");
+		BigInteger randomNumber;
+		do {
+			randomNumber = new BigInteger(upperLimit.bitLength(), new SecureRandom());
+		} while (randomNumber.compareTo(upperLimit) >= 0);
+
+		String serialNumber = String.valueOf(randomNumber);
+
+		X500NameBuilder builder = new X500NameBuilder(BCStyle.INSTANCE);
+		builder.addRDN(BCStyle.CN, dto.getCN());
+		builder.addRDN(BCStyle.L, dto.getL());
+		builder.addRDN(BCStyle.ST, dto.getST());
+		builder.addRDN(BCStyle.O, dto.getO());
+		builder.addRDN(BCStyle.OU, dto.getOU());
+		builder.addRDN(BCStyle.C, dto.getC());
+		builder.addRDN(BCStyle.E, dto.getE());
+		builder.addRDN(BCStyle.UID, "123456");
+
+		return new SubjectData(keyPair.getPublic(), builder.build(), serialNumber, startDate, endDate,
+				keyPair.getPrivate());
+	}
+
+	/**
+	 * @param dto:        DTO sa fronta
+	 * @param privateKey: privatni kljuc issuera generisan negde van ove metode i
+	 *                    pripojen sertifikatu koji se skladisti
+	 */
+	public IssuerData generateIssuerData(CertificateX500NameDTO dto, PrivateKey privateKey) {
+
+		X500NameBuilder builder = new X500NameBuilder(BCStyle.INSTANCE);
+
+		builder.addRDN(BCStyle.CN, dto.getCN());
+		builder.addRDN(BCStyle.O, dto.getO());
+		builder.addRDN(BCStyle.OU, dto.getOU());
+		builder.addRDN(BCStyle.C, dto.getC());
+		builder.addRDN(BCStyle.E, dto.getE());
+		builder.addRDN(BCStyle.L, dto.getL());
+		builder.addRDN(BCStyle.ST, dto.getST());
+		// TODO: id usera koji kreira zahtev, sad je hardkodovano
+		builder.addRDN(BCStyle.UID, "123456");
+
+		return new IssuerData(privateKey, builder.build());
+	}
+
+
+	public BasicConstraintsDTO generateBasicConstraints(X509Certificate certificate)
+			throws CertificateEncodingException {
+		BasicConstraintsDTO ret = new BasicConstraintsDTO();
+		Extension basicConstraints = new JcaX509CertificateHolder(certificate).getExtension(Extension.basicConstraints);
+		BasicConstraints bc = BasicConstraints.getInstance(basicConstraints.getExtnValue().getOctets());
+		ret.setCritical(basicConstraints.isCritical());
+		ret.setCertificateAuthority(bc.isCA());
+
+		return ret;
+	}
+
+	public KeyUsageDTO generateKeyUsage(X509Certificate certificate) throws CertificateEncodingException {
+		Extension keyUsage = new JcaX509CertificateHolder(certificate).getExtension(Extension.keyUsage);
+		KeyUsageDTO ret = new KeyUsageDTO();
+		ret.setCritical(keyUsage.isCritical());
+		ret.setUsages(certificate.getKeyUsage());
+
+		return ret;
+	}
+
+	public ExtendedKeyUsageDTO generateExtendedKeyUsage(X509Certificate certificate) throws Exception {
+		Extension extendedKeyUsage = new JcaX509CertificateHolder(certificate).getExtension(Extension.extendedKeyUsage);
+		ExtendedKeyUsageDTO ret = new ExtendedKeyUsageDTO();
+		ret.setCritical(extendedKeyUsage.isCritical());
+		ret.setUsages(certificate.getExtendedKeyUsage());
+
+		return ret;
+	}
+
 }

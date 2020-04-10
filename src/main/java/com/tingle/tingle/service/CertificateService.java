@@ -114,11 +114,11 @@ public class CertificateService {
 
 			// TODO attach other extensions
 			ExtensionsDTO extensionsDTO = new ExtensionsDTO();
-			extensionsDTO.setBasicConstraints(generateBasicConstraints(certificate));
-			extensionsDTO.setKeyUsage(generateKeyUsage(certificate));
+			extensionsDTO.setBasicConstraints(certificateGenerator.generateBasicConstraints(certificate));
+			extensionsDTO.setKeyUsage(certificateGenerator.generateKeyUsage(certificate));
 
 			if (certificateRole == Role.END_ENTITY) {
-				extensionsDTO.setExtendedKeyUsage(generateExtendedKeyUsage(certificate));
+				extensionsDTO.setExtendedKeyUsage(certificateGenerator.generateExtendedKeyUsage(certificate));
 			}
 
 			CertificateX500NameDTO[] x509dto = converter.convertFromX500Principals(subjName, issuerName);
@@ -140,35 +140,6 @@ public class CertificateService {
 		return null;
 	}
 
-	private BasicConstraintsDTO generateBasicConstraints(X509Certificate certificate)
-			throws CertificateEncodingException {
-		BasicConstraintsDTO ret = new BasicConstraintsDTO();
-		Extension basicConstraints = new JcaX509CertificateHolder(certificate).getExtension(Extension.basicConstraints);
-		BasicConstraints bc = BasicConstraints.getInstance(basicConstraints.getExtnValue().getOctets());
-		ret.setCritical(basicConstraints.isCritical());
-		ret.setCertificateAuthority(bc.isCA());
-
-		return ret;
-	}
-
-	private KeyUsageDTO generateKeyUsage(X509Certificate certificate) throws CertificateEncodingException {
-		Extension keyUsage = new JcaX509CertificateHolder(certificate).getExtension(Extension.keyUsage);
-		KeyUsageDTO ret = new KeyUsageDTO();
-		ret.setCritical(keyUsage.isCritical());
-		ret.setUsages(certificate.getKeyUsage());
-
-		return ret;
-	}
-
-	private ExtendedKeyUsageDTO generateExtendedKeyUsage(X509Certificate certificate) throws Exception {
-		Extension extendedKeyUsage = new JcaX509CertificateHolder(certificate).getExtension(Extension.extendedKeyUsage);
-		ExtendedKeyUsageDTO ret = new ExtendedKeyUsageDTO();
-		ret.setCritical(extendedKeyUsage.isCritical());
-		ret.setUsages(certificate.getExtendedKeyUsage());
-
-		return ret;
-	}
-
 	/**
 	 * Returns data of all CA's in the system. validated :)
 	 */
@@ -178,8 +149,7 @@ public class CertificateService {
 
 		List<X509Certificate> cAJoinedList = findCACertificates();
 
-		// ne znam zasto mi duplira root u cA; ovo je glupav quickfix
-
+		// duplira root u cA; ovo je quickfix
 		if (cAJoinedList == null) {
 			return null;
 		}
@@ -226,8 +196,8 @@ public class CertificateService {
 	public void generateSelfSignedCertificate(CertificateX500NameDTO dto) throws ParseException, CertIOException {
 
 		// keypair za subjekta i issuera je isti, jer je self-signed sertifikat
-		SubjectData subject = generateSubjectData(dto);
-		IssuerData issuer = generateIssuerData(dto, subject.getPrivateKey());
+		SubjectData subject = certificateGenerator.generateSubjectData(dto);
+		IssuerData issuer = certificateGenerator.generateIssuerData(dto, subject.getPrivateKey());
 
 		// changed the last param from isCA to extensions
 		X509Certificate cert = certificateGenerator.generateCertificate(subject, issuer, dto.getExtensions());
@@ -269,7 +239,7 @@ public class CertificateService {
 							config.getIntermediateKeyStorePassword().toCharArray());
 				}
 
-				SubjectData subject = generateSubjectData(dto);
+				SubjectData subject = certificateGenerator.generateSubjectData(dto);
 
 				X509Certificate cert = certificateGenerator.generateCertificate(subject, issuer, dto.getExtensions());
 
@@ -296,7 +266,7 @@ public class CertificateService {
 
 	public void generateEndEntityCertificate(CertificateX500NameDTO subjectDTO, CertificateX500NameDTO issuerDTO)
 			throws ParseException, CertIOException {
-		SubjectData subject = generateSubjectData(subjectDTO);
+		SubjectData subject = certificateGenerator.generateSubjectData(subjectDTO);
 
 		String keyStorePassword = "";
 		IssuerData issuer;
@@ -328,85 +298,7 @@ public class CertificateService {
 		System.out.println("===================== SUCCESS =====================");
 	}
 
-	private SubjectData generateSubjectData(CertificateX500NameDTO dto) throws ParseException {
 
-		// based on role, generate RSA key pair length
-		KeyPair keyPair;
-
-		if (dto.getCertificateRole() == Role.ROOT || dto.getCertificateRole() == Role.INTERMEDIATE) {
-			keyPair = certificateGenerator.generateKeyPair(true);
-		} else {
-			keyPair = certificateGenerator.generateKeyPair(false);
-		}
-
-		// Datumi od kad do kad vazi sertifikat
-		Calendar cal = new GregorianCalendar();
-		SimpleDateFormat iso8601Formater = new SimpleDateFormat("dd-MM-yyyy");
-		iso8601Formater.setTimeZone(cal.getTimeZone());
-
-		String startDateString = iso8601Formater.format(cal.getTime());
-
-		// based on role, set certificate expiration date
-		if (dto.getCertificateRole() == Role.ROOT) {
-			cal.add(Calendar.YEAR, config.getRootYears());
-		} else if (dto.getCertificateRole() == Role.INTERMEDIATE) {
-			cal.add(Calendar.YEAR, config.getIntermediateYears());
-		} else {
-			cal.add(Calendar.YEAR, config.getEndEntityYears());
-		}
-
-		String endDateString = iso8601Formater.format(cal.getTime());
-
-		System.out.println("Start date: " + startDateString);
-		System.out.println("End date: " + endDateString);
-
-		Date startDate = iso8601Formater.parse(startDateString);
-		Date endDate = iso8601Formater.parse(endDateString);
-
-		// Serial number je vazan, za sad JAKO VELIKI random broj
-		BigInteger upperLimit = new BigInteger("1000000000000");
-		BigInteger randomNumber;
-		do {
-			randomNumber = new BigInteger(upperLimit.bitLength(), new SecureRandom());
-		} while (randomNumber.compareTo(upperLimit) >= 0);
-
-		String serialNumber = String.valueOf(randomNumber);
-
-		X500NameBuilder builder = new X500NameBuilder(BCStyle.INSTANCE);
-		builder.addRDN(BCStyle.CN, dto.getCN());
-		builder.addRDN(BCStyle.L, dto.getL());
-		builder.addRDN(BCStyle.ST, dto.getST());
-		builder.addRDN(BCStyle.O, dto.getO());
-		builder.addRDN(BCStyle.OU, dto.getOU());
-		builder.addRDN(BCStyle.C, dto.getC());
-		builder.addRDN(BCStyle.E, dto.getE());
-		builder.addRDN(BCStyle.UID, "123456");
-
-		return new SubjectData(keyPair.getPublic(), builder.build(), serialNumber, startDate, endDate,
-				keyPair.getPrivate());
-	}
-
-	/**
-	 * @param dto:        DTO sa fronta
-	 * @param privateKey: privatni kljuc issuera generisan negde van ove metode i
-	 *                    pripojen sertifikatu koji se skladisti
-	 */
-	private IssuerData generateIssuerData(CertificateX500NameDTO dto, PrivateKey privateKey) {
-
-		X500NameBuilder builder = new X500NameBuilder(BCStyle.INSTANCE);
-
-		builder.addRDN(BCStyle.CN, dto.getCN());
-		builder.addRDN(BCStyle.O, dto.getO());
-		builder.addRDN(BCStyle.OU, dto.getOU());
-		builder.addRDN(BCStyle.C, dto.getC());
-		builder.addRDN(BCStyle.E, dto.getE());
-		builder.addRDN(BCStyle.L, dto.getL());
-		builder.addRDN(BCStyle.ST, dto.getST());
-		// TODO: id usera koji kreira zahtev, sad je hardkodovano
-		builder.addRDN(BCStyle.UID, "123456");
-
-		return new IssuerData(privateKey, builder.build());
-	}
 
 	/**
 	 * OCSP request validation, a client sends the certificates' serialNumber that

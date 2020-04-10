@@ -19,10 +19,8 @@ public class KeyStoreReader {
 
     public KeyStoreReader() {
         try {
-            keyStore = KeyStore.getInstance("JKS", "SUN");
+            keyStore = KeyStore.getInstance("PKCS12");
         } catch (KeyStoreException e) {
-            e.printStackTrace();
-        } catch (NoSuchProviderException e) {
             e.printStackTrace();
         }
     }
@@ -55,7 +53,7 @@ public class KeyStoreReader {
 
             }
 
-            return new IssuerData(privKey, issuerName);
+            return new IssuerData(privKey, issuerName, cert.getPublicKey());
         } catch (KeyStoreException e) {
             e.printStackTrace();
             return null;
@@ -90,7 +88,7 @@ public class KeyStoreReader {
 
         try {
             //kreiramo instancu KeyStore
-            KeyStore ks = KeyStore.getInstance("JKS", "SUN");
+            KeyStore ks = KeyStore.getInstance("PKCS12");
             //ucitavamo podatke
             BufferedInputStream in = new BufferedInputStream(new FileInputStream(keyStoreFile));
             ks.load(in, keyStorePass.toCharArray());
@@ -100,8 +98,6 @@ public class KeyStoreReader {
                 return cert;
             }
         } catch (KeyStoreException e) {
-            e.printStackTrace();
-        } catch (NoSuchProviderException e) {
             e.printStackTrace();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -122,7 +118,7 @@ public class KeyStoreReader {
     public PrivateKey readPrivateKey(String keyStoreFile, String keyStorePass, String alias, String pass) {
         try {
             //kreiramo instancu KeyStore
-            KeyStore ks = KeyStore.getInstance("JKS", "SUN");
+            KeyStore ks = KeyStore.getInstance("PKCS12");
             //ucitavamo podatke
             BufferedInputStream in = new BufferedInputStream(new FileInputStream(keyStoreFile));
             ks.load(in, keyStorePass.toCharArray());
@@ -133,9 +129,7 @@ public class KeyStoreReader {
             }
         } catch (KeyStoreException e) {
             e.printStackTrace();
-        } catch (NoSuchProviderException e) {
-            e.printStackTrace();
-        } catch (FileNotFoundException e) {
+        }  catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
@@ -160,7 +154,7 @@ public class KeyStoreReader {
             File file = new File(keystoreFile);
             is = new FileInputStream(file);
 
-            KeyStore ks = KeyStore.getInstance("JKS", "SUN");
+            KeyStore ks = KeyStore.getInstance("PKCS12");
             ks.load(is, password);
 
             Enumeration<String> enumeration = ks.aliases();
@@ -168,23 +162,8 @@ public class KeyStoreReader {
                 String alias = enumeration.nextElement();
                 Certificate certificate = ks.getCertificate(alias);
                 certList.add(certificate);
-//                //get certificate chain
-//                Certificate[] certs = ks.getCertificateChain(alias);
-//
-//                //convert it to a list
-//                List<Certificate> toList = Arrays.stream(certs).collect(Collectors.toList());
-//                certList.addAll(toList);
-//                for (Certificate certificate : toList) {
-                   //X509Certificate certificate1 = (X509Certificate) certificate;
-
-                    System.out.println("alias name: " + alias);
-                    System.out.println(certificate);
-//                    System.out.println("=========== Private key =========== ");
-//                    PrivateKey pk = readPrivateKey(keystoreFile, new String(password),alias, new String(password));
-//                    System.out.println("Private key: " + Arrays.toString(Base64.encode(pk.getEncoded())));
-
-                //}
-
+                System.out.println("alias name: " + alias);
+                System.out.println(certificate);
             }
 
         } catch (java.security.cert.CertificateException e) {
@@ -197,9 +176,7 @@ public class KeyStoreReader {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
-        } catch (NoSuchProviderException e) {
-            e.printStackTrace();
-        } finally {
+        }  finally {
             if(null != is)
                 try {
                     is.close();

@@ -16,10 +16,8 @@ public class KeyStoreWriter {
 
     public KeyStoreWriter() {
         try {
-            keyStore = KeyStore.getInstance("JKS", "SUN");
+            keyStore = KeyStore.getInstance("PKCS12");
         } catch (KeyStoreException e) {
-            e.printStackTrace();
-        } catch (NoSuchProviderException e) {
             e.printStackTrace();
         }
     }
