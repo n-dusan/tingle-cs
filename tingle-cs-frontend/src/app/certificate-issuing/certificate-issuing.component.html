@@ -173,18 +173,18 @@
                     </div>
                     <section fxFlex fxLayout="row" fxLayoutAlign="center center">
                         <div>
-                            <mat-checkbox formControlName="digitalSignature" [(ngModel)]="isFirstTemplateSelected">Digital Signature</mat-checkbox> <br>
-                            <mat-checkbox formControlName="keyEncipherment" [(ngModel)]="isSixthTemplateSelected">Key Encipherment</mat-checkbox> <br>
-                            <mat-checkbox formControlName="nonRepudiation" [(ngModel)]="isThirdTemplateSelected">Non Repudiation</mat-checkbox> <br>
-                            <mat-checkbox formControlName="dataEncipherment" [(ngModel)]="isThirdTemplateSelected">Data Encipherment</mat-checkbox> <br>
-                            <mat-checkbox formControlName="keyAgreement" [(ngModel)]="isFirstFourthTemplateSelected">Key Agreement</mat-checkbox> <br>
+                            <mat-checkbox formControlName="digitalSignature" [(ngModel)]="isDSSelected">Digital Signature</mat-checkbox> <br>
+                            <mat-checkbox formControlName="keyEncipherment" [(ngModel)]="isKESelected">Key Encipherment</mat-checkbox> <br>
+                            <mat-checkbox formControlName="nonRepudiation" [(ngModel)]="isNESelected">Non Repudiation</mat-checkbox> <br>
+                            <mat-checkbox formControlName="dataEncipherment" [(ngModel)]="isDESelected">Data Encipherment</mat-checkbox> <br>
+                            <mat-checkbox formControlName="keyAgreement" [(ngModel)]="isKASelected">Key Agreement</mat-checkbox> <br>
                         </div>
                         <div style="width: 15px;"></div>
                         <div>
-                            <mat-checkbox formControlName="keyCertSign" [(ngModel)]="isSecondTemplateSelected">Key Cert Sign</mat-checkbox> <br>
-                            <mat-checkbox formControlName="crlSign" [(ngModel)]="isSecondTemplateSelected">CRLSign</mat-checkbox> <br>
-                            <mat-checkbox formControlName="encipherOnly" [(ngModel)]="isFourthTemplateSelected">Encipher Only</mat-checkbox> <br>
-                            <mat-checkbox formControlName="decipherOnly" [(ngModel)]="isFourthTemplateSelected">Decipher Only</mat-checkbox> <br>
+                            <mat-checkbox formControlName="keyCertSign" [(ngModel)]="isKCSSelected">Key Cert Sign</mat-checkbox> <br>
+                            <mat-checkbox formControlName="crlSign" [(ngModel)]="isCRLSelected">CRLSign</mat-checkbox> <br>
+                            <mat-checkbox formControlName="encipherOnly" [(ngModel)]="isEncSelected">Encipher Only</mat-checkbox> <br>
+                            <mat-checkbox formControlName="decipherOnly" [(ngModel)]="isDecSelected">Decipher Only</mat-checkbox> <br>
                         </div>
 
                     </section>
