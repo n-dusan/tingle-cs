@@ -6,6 +6,7 @@ import { EndEntityCertificate } from '../shared/end-entity-cert.model';
 import { Extensions } from '../shared/extensions.model';
 import { ExtensionsKeyUsage } from '../shared/key-usage.model';
 import { ExtensionsBasicConstraints } from '../shared/basic-constraints.model';
+import { ExtendedKeyUsage } from '../shared/extended-key-usage.model';
 
 @Component({
   selector: 'app-certificate-issuing',
@@ -62,6 +63,7 @@ export class CertificateIssuingComponent implements OnInit {
     this.fourthFormGroup = this._formBuilder.group({
       criticalKeyUsage: [false],
       criticalBasicConstraints: [false],
+      criticalExtendedKeyUsage: [false],
       digitalSignature: [false],
       keyEncipherment: [false],
       nonRepudiation: [false],
@@ -71,6 +73,12 @@ export class CertificateIssuingComponent implements OnInit {
       crlSign: [false],
       encipherOnly: [false],
       decipherOnly: [false],
+      clientAuth: [false],
+      codeSigning: [false],
+      emailProtection: [false],
+      ocspSigning: [false],
+      serverAuth: [false],
+      timeStamping: [false],
       subjectType: ['', Validators.required],
       password: [''],
       alias: ['']
@@ -113,27 +121,30 @@ export class CertificateIssuingComponent implements OnInit {
     const ou = this.secondFormGroup.value.OU;
     const e = this.secondFormGroup.value.E;
 
-    const cert = new Certificate(null, null, alias, active, role, cn, o, l, st, c, e, ou);
-    const issuer = this.selectedCA;
-
-    // TODO: don't use EndEntityCertificate. Use Certificate and put 
-    // issuers' serial number as cert.serialNumber
-    const endEntityCert: EndEntityCertificate = new EndEntityCertificate(cert, issuer);
-
-    const newCert = new Certificate(null, null, alias, true, role, cn, o, l, st, c, e, ou);
-    newCert.extensions = this.attachExtensions();
-
-    //CHECK 
-    console.log(newCert)
-
     // Make request based on certificate role
     if (role === 'ROOT') {
+      const newCert = new Certificate(null, null, alias, true, role, cn, o, l, st, c, e, ou);
+      newCert.extensions = this.attachExtensions();
+
+      //CHECK 
+      console.log(newCert)
+
       this.makeRootRequest(newCert);
     } else if (role === 'INTERMEDIATE') {
       // set serial number to issuer.serialNumber
+      const newCert = new Certificate(null, null, alias, true, role, cn, o, l, st, c, e, ou);
+      newCert.extensions = this.attachExtensions();
       newCert.serialNumber = this.selectedCA.serialNumber;
+
+      //CHECK 
+      console.log(newCert)
+
       this.makeCARequest(newCert);
     } else {
+      const cert = new Certificate(null, null, alias, active, role, cn, o, l, st, c, e, ou);
+      cert.extensions = this.attachExtensions();
+      const issuer = this.selectedCA;
+      const endEntityCert: EndEntityCertificate = new EndEntityCertificate(cert, issuer);
       this.makeEndEntityRequest(endEntityCert);
     }
 
@@ -251,6 +262,7 @@ export class CertificateIssuingComponent implements OnInit {
     var extensions: Extensions = new Extensions();
     var keyUsage: ExtensionsKeyUsage = new ExtensionsKeyUsage();
     var basicConstraints: ExtensionsBasicConstraints = new ExtensionsBasicConstraints();
+    var extendedKeyUsage: ExtendedKeyUsage = new ExtendedKeyUsage();
 
     // Attach key usages
     keyUsage.digitalSignature = this.fourthFormGroup.value.digitalSignature;
@@ -274,6 +286,19 @@ export class CertificateIssuingComponent implements OnInit {
     basicConstraints.critical = this.fourthFormGroup.value.criticalBasicConstraints;
     extensions.basicConstraints = basicConstraints;
 
+    // Attach Extended Key Usage in case of end-entity cert
+    if (this.selectedSubjectType === 'end-entity') {
+      console.log('END-ENTITY !!!')
+      extendedKeyUsage.critical = this.thirdFormGroup.value.criticalExtendedKeyUsage;
+      extendedKeyUsage.clientAuth = this.thirdFormGroup.value.clientAuth;
+      extendedKeyUsage.codeSigning = this.thirdFormGroup.value.codeSigning;
+      extendedKeyUsage.emailProtection = this.thirdFormGroup.value.emailProtection;
+      extendedKeyUsage.ocspSigning = this.thirdFormGroup.value.ocspSigning;
+      extendedKeyUsage.serverAuth = this.thirdFormGroup.value.serverAuth;
+      extendedKeyUsage.timeStamping = this.thirdFormGroup.value.timeStamping;
+
+      extensions.extendedKeyUsage = extendedKeyUsage;
+    }
 
     console.log(extensions)
 

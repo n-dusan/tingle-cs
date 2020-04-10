@@ -8,9 +8,15 @@ import java.security.Security;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 import org.bouncycastle.asn1.x509.BasicConstraints;
+import org.bouncycastle.asn1.x509.ExtendedKeyUsage;
 import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.asn1.x509.KeyPurposeId;
+import org.bouncycastle.asn1.x509.KeyUsage;
 import org.bouncycastle.cert.CertIOException;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
@@ -23,6 +29,7 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.springframework.stereotype.Component;
 
 import com.tingle.tingle.domain.dto.BasicConstraintsDTO;
+import com.tingle.tingle.domain.dto.ExtendedKeyUsageDTO;
 import com.tingle.tingle.domain.dto.ExtensionsDTO;
 import com.tingle.tingle.domain.dto.KeyUsageDTO;
 
@@ -51,11 +58,23 @@ public class CertificateGenerator {
 
             //Ekstenzije 
             BasicConstraintsDTO basicConstraintsDTO = extensions.getBasicConstraints();
-            KeyUsageDTO keyUsageDTO = extensions.getKeyUsage();
-            
             BasicConstraints basicConstraints = new BasicConstraints(basicConstraintsDTO.isCertificateAuthority()); // <-- true for CA, false for EndEntity
             certGen.addExtension(Extension.basicConstraints, basicConstraintsDTO.isCritical(), basicConstraints); // Basic Constraints is usually marked as critical.
 
+            KeyUsageDTO keyUsageDTO = extensions.getKeyUsage();
+            int usages = generateKeyUsages(extensions.getKeyUsage());
+            KeyUsage keyUsage = new KeyUsage(usages);
+            certGen.addExtension(Extension.keyUsage, keyUsageDTO.isCritical(), keyUsage);
+            
+            ExtendedKeyUsageDTO extendedKeyUsageDTO;
+            if(extensions.getExtendedKeyUsage() != null) {
+            	extendedKeyUsageDTO = extensions.getExtendedKeyUsage();
+            	KeyPurposeId[] extendedUsages = generateExtendedKeyUsage(extensions.getExtendedKeyUsage());
+            	ExtendedKeyUsage extendedKeyUsage = new ExtendedKeyUsage(extendedUsages);
+            	certGen.addExtension(Extension.extendedKeyUsage, extendedKeyUsageDTO.isCritical(), extendedKeyUsage);
+            }
+            
+            
             JcaX509CertificateConverter certConverter = new JcaX509CertificateConverter();
             certConverter = certConverter.setProvider("BC");
 
@@ -96,5 +115,67 @@ public class CertificateGenerator {
         return null;
     }
     
-   
+    private int generateKeyUsages(KeyUsageDTO dto) {
+    	Optional<Integer> ret;
+    	
+    	List<Integer> thoseWhoAreTrue = new ArrayList<Integer>();
+    	if(dto.isDigitalSignature()) {
+    		thoseWhoAreTrue.add(KeyUsage.digitalSignature);
+    	}
+    	if(dto.isNonRepudation()) {
+    		thoseWhoAreTrue.add(KeyUsage.nonRepudiation);
+    	}
+    	if(dto.isKeyEncipherment()) {
+    		thoseWhoAreTrue.add(KeyUsage.keyEncipherment);
+    	}
+    	if(dto.isDataEncipherment()) {
+    		thoseWhoAreTrue.add(KeyUsage.dataEncipherment);
+    	}
+    	if(dto.isKeyAgreement()) {
+    		thoseWhoAreTrue.add(KeyUsage.keyAgreement);
+    	}
+    	if(dto.isKeyCertSign()) {
+    		thoseWhoAreTrue.add(KeyUsage.keyCertSign);
+    	}
+    	if(dto.isCrlSign()) {
+    		thoseWhoAreTrue.add(KeyUsage.cRLSign);
+    	}
+    	if(dto.isEncipherOnly()) {
+    		thoseWhoAreTrue.add(KeyUsage.encipherOnly);
+    	}
+    	if(dto.isDecipherOnly()) {
+    		thoseWhoAreTrue.add(KeyUsage.decipherOnly);
+    	}
+    	
+    	ret = thoseWhoAreTrue.stream().reduce((a,b)-> a | b);
+    	
+    	return ret.get();
+    }
+    
+    private KeyPurposeId[] generateExtendedKeyUsage(ExtendedKeyUsageDTO dto) {
+    	
+    	List<KeyPurposeId> thoseWhoAreTrue = new ArrayList<KeyPurposeId>();
+    	if(dto.isClientAuth()) {
+    		thoseWhoAreTrue.add(KeyPurposeId.id_kp_clientAuth);
+    	}
+    	if(dto.isCodeSigning()) {
+    		thoseWhoAreTrue.add(KeyPurposeId.id_kp_codeSigning);
+    	}
+    	if(dto.isEmailProtection()) {
+    		thoseWhoAreTrue.add(KeyPurposeId.id_kp_emailProtection);
+    	}
+    	if(dto.isOcspSigning()) {
+    		thoseWhoAreTrue.add(KeyPurposeId.id_kp_OCSPSigning);
+    	}
+    	if(dto.isServerAuth()) {
+    		thoseWhoAreTrue.add(KeyPurposeId.id_kp_serverAuth);
+    	}
+    	if(dto.isTimeStamping()) {
+    		thoseWhoAreTrue.add(KeyPurposeId.id_kp_timeStamping);
+    	}
+    	
+    	KeyPurposeId[] ret = new KeyPurposeId[thoseWhoAreTrue.size()];
+    	thoseWhoAreTrue.toArray(ret); // fill the array
+    	return ret;
+    }
 }

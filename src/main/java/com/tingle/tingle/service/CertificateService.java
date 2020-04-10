@@ -14,6 +14,7 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateExpiredException;
 import java.security.cert.CertificateNotYetValidException;
+import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -33,6 +34,7 @@ import org.bouncycastle.asn1.x500.X500NameBuilder;
 import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.bouncycastle.asn1.x509.BasicConstraints;
 import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.asn1.x509.KeyUsage;
 import org.bouncycastle.cert.CertIOException;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +48,9 @@ import com.tingle.tingle.domain.certificates.SubjectData;
 import com.tingle.tingle.domain.dto.BasicConstraintsDTO;
 import com.tingle.tingle.domain.dto.CertificateDTO;
 import com.tingle.tingle.domain.dto.CertificateX500NameDTO;
+import com.tingle.tingle.domain.dto.ExtendedKeyUsageDTO;
 import com.tingle.tingle.domain.dto.ExtensionsDTO;
+import com.tingle.tingle.domain.dto.KeyUsageDTO;
 import com.tingle.tingle.domain.enums.CRLReason;
 import com.tingle.tingle.domain.enums.OCSPResponse;
 import com.tingle.tingle.domain.enums.Role;
@@ -118,19 +122,13 @@ public class CertificateService {
             X500Name subjName = new JcaX509CertificateHolder(certificate).getSubject();
             X500Name issuerName = new JcaX509CertificateHolder(certificate).getIssuer();
 
-            Extension basicConstraints = new JcaX509CertificateHolder(certificate).getExtension(Extension.basicConstraints);
-            BasicConstraints bc = BasicConstraints.getInstance(basicConstraints.getExtnValue().getOctets());
-            
-            BasicConstraintsDTO basicConstraintsDTO = new BasicConstraintsDTO();
-            basicConstraintsDTO.setCritical(basicConstraints.isCritical());
-            basicConstraintsDTO.setCertificateAuthority(bc.isCA());
+            // TODO attach other extensions
+            ExtensionsDTO extensionsDTO = new ExtensionsDTO();           
+            extensionsDTO.setBasicConstraints(generateBasicConstraints(certificate));
+            extensionsDTO.setKeyUsage(generateKeyUsage(certificate));
+            extensionsDTO.setExtendedKeyUsage(generateExtendedKeyUsage(certificate));
             
             CertificateX500NameDTO[] x509dto =  converter.convertFromX500Principals(subjName, issuerName);
-
-            //TODO attach Extensions to x509dto
-            ExtensionsDTO extensionsDTO = new ExtensionsDTO();           
-            extensionsDTO.setBasicConstraints(basicConstraintsDTO);
-            
             x509dto[1].setExtensions(extensionsDTO);
             x509dto[1].setCertificateRole(certificateRole);
             x509dto[1].setSerialNumber(serialNumber);
@@ -140,10 +138,44 @@ public class CertificateService {
             e.printStackTrace();
         } catch (CertificateEncodingException e) {
             e.printStackTrace();
-        } 
+        } catch (CertificateParsingException e) {
+			e.printStackTrace();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} 
         return null;
     }
 
+    
+    private BasicConstraintsDTO generateBasicConstraints(X509Certificate certificate) throws CertificateEncodingException {
+    	BasicConstraintsDTO ret = new BasicConstraintsDTO();
+    	Extension basicConstraints = new JcaX509CertificateHolder(certificate).getExtension(Extension.basicConstraints);
+        BasicConstraints bc = BasicConstraints.getInstance(basicConstraints.getExtnValue().getOctets());
+        ret.setCritical(basicConstraints.isCritical());
+        ret.setCertificateAuthority(bc.isCA());
+        
+    	return ret;
+    }
+    
+    private KeyUsageDTO generateKeyUsage(X509Certificate certificate) throws CertificateEncodingException {
+    	Extension keyUsage = new JcaX509CertificateHolder(certificate).getExtension(Extension.keyUsage);
+        KeyUsageDTO ret = new KeyUsageDTO();
+        ret.setCritical(keyUsage.isCritical());
+        ret.setUsages(certificate.getKeyUsage());
+        
+        return ret;
+    }
+    
+    private ExtendedKeyUsageDTO generateExtendedKeyUsage(X509Certificate certificate) throws Exception {
+    	Extension extendedKeyUsage = new JcaX509CertificateHolder(certificate).getExtension(Extension.extendedKeyUsage);
+    	ExtendedKeyUsageDTO ret = new ExtendedKeyUsageDTO();
+    	ret.setCritical(extendedKeyUsage.isCritical());
+    	ret.setUsages(certificate.getExtendedKeyUsage());
+    	
+    	return ret;
+    }
+    
     /**
      * Returns data of all CA's in the system.
      * validated :)
