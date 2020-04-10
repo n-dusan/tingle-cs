@@ -22,8 +22,6 @@
 #app-properties
 src/main/resources/application.properties
 
-#jebeni jks fajl
-*.jks
 
 # certificate 
 *.cer
