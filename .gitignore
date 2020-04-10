@@ -61,3 +61,6 @@ build/
 ### VS Code ###
 .vscode/
 src/main/resources/application.properties
+.jks/end-entity.jks
+.jks/intermediate.jks
+.jks/root.jks
