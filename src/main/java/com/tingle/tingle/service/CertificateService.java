@@ -143,7 +143,6 @@ public class CertificateService {
 	/**
 	 * Returns data of all CA's in the system. validated :)
 	 */
-
 	public List<CertificateX500NameDTO> getCertificateCASubjectData()
 			throws InvalidNameException, CertificateException {
 
