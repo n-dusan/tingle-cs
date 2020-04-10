@@ -17,9 +17,16 @@ export class CertificateIssuingComponent implements OnInit {
   isLinear = true;
   spin = false;
   success = false;
+  isFirstTemplateSelected = false;
+  isSecondTemplateSelected = false;
+  isThirdTemplateSelected = false;
+  isFirstFourthTemplateSelected = false;
+  isFourthTemplateSelected = false;
+  isSixthTemplateSelected = false;
   firstFormGroup: FormGroup;
   secondFormGroup: FormGroup;
   thirdFormGroup: FormGroup;
+  fourthFormGroup: FormGroup;
 
   cas: Certificate[] = [];
 
@@ -40,7 +47,7 @@ export class CertificateIssuingComponent implements OnInit {
         console.log(error.error)
       }
     );
-    this.firstFormGroup = this._formBuilder.group({
+    this.secondFormGroup = this._formBuilder.group({
       CN: ['', Validators.required],
       OU: ['', Validators.required],
       ON: ['', Validators.required],
@@ -49,10 +56,10 @@ export class CertificateIssuingComponent implements OnInit {
       CO: ['', Validators.required],
       E: ['', Validators.required]
     });
-    this.secondFormGroup = this._formBuilder.group({
+    this.thirdFormGroup = this._formBuilder.group({
       ca: ['']
     });
-    this.thirdFormGroup = this._formBuilder.group({
+    this.fourthFormGroup = this._formBuilder.group({
       criticalKeyUsage: [false],
       criticalBasicConstraints: [false],
       digitalSignature: [false],
@@ -86,25 +93,25 @@ export class CertificateIssuingComponent implements OnInit {
 
   onDoneClick() {
     //========== Take values from forms and construct a Certificate object ==========
-    const alias = this.thirdFormGroup.value.alias;
+    const alias = this.fourthFormGroup.value.alias;
     const active = true;
 
     var role = '';
     if (this.isSelfSigned) {
       role = 'ROOT';
-    } else if (this.thirdFormGroup.value.subjectType === 'CA') {
+    } else if (this.fourthFormGroup.value.subjectType === 'CA') {
       role = 'INTERMEDIATE'
     } else {
       role = 'END_ENTITY'
     }
 
-    const cn = this.firstFormGroup.value.CN;
-    const o = this.firstFormGroup.value.ON;
-    const l = this.firstFormGroup.value.LN;
-    const st = this.firstFormGroup.value.ST;
-    const c = this.firstFormGroup.value.CO;
-    const ou = this.firstFormGroup.value.OU;
-    const e = this.firstFormGroup.value.E;
+    const cn = this.secondFormGroup.value.CN;
+    const o = this.secondFormGroup.value.ON;
+    const l = this.secondFormGroup.value.LN;
+    const st = this.secondFormGroup.value.ST;
+    const c = this.secondFormGroup.value.CO;
+    const ou = this.secondFormGroup.value.OU;
+    const e = this.secondFormGroup.value.E;
 
     const cert = new Certificate(null, null, alias, active, role, cn, o, l, st, c, e, ou);
     const issuer = this.selectedCA;
@@ -136,7 +143,7 @@ export class CertificateIssuingComponent implements OnInit {
   sliderClick() {
     this.isSelfSigned = !this.isSelfSigned;
     if (this.isSelfSigned) {
-      this.thirdFormGroup.value.subjectType = "CA"
+      this.fourthFormGroup.value.subjectType = "CA"
     }
   }
 
@@ -186,6 +193,59 @@ export class CertificateIssuingComponent implements OnInit {
     );
   }
 
+  selectFirstTemplate(){
+    this.isFirstTemplateSelected = true;
+    this.isFirstFourthTemplateSelected = true;
+    this.isSecondTemplateSelected = false;
+    this.isThirdTemplateSelected = false;
+    this.isFourthTemplateSelected = false;
+    this.isSixthTemplateSelected = false;
+  }
+
+  selectSecondTemplate(){
+    this.isFirstTemplateSelected = false;
+    this.isSecondTemplateSelected = true;
+    this.isThirdTemplateSelected = false;
+    this.isFirstFourthTemplateSelected = false;
+    this.isFourthTemplateSelected = false;
+    this.isSixthTemplateSelected = false;
+  }
+
+  selectThirdTemplate(){
+    this.isFirstTemplateSelected = false;
+    this.isSecondTemplateSelected = false;
+    this.isThirdTemplateSelected = true;
+    this.isFirstFourthTemplateSelected = false;
+    this.isFourthTemplateSelected = false;
+    this.isSixthTemplateSelected = false;
+  }
+
+  selectFourthTemplate(){
+    this.isFirstFourthTemplateSelected = true;
+    this.isFourthTemplateSelected = true;
+    this.isSecondTemplateSelected = false;
+    this.isThirdTemplateSelected = false;
+    this.isFirstTemplateSelected = false;
+    this.isSixthTemplateSelected = false;
+  }
+
+  selectFifthTemplate(){
+    this.isFirstTemplateSelected = true;
+    this.isSecondTemplateSelected = false;
+    this.isThirdTemplateSelected = false;
+    this.isFirstFourthTemplateSelected = false;
+    this.isFourthTemplateSelected = false;
+  }
+
+  selectSixthTemplate(){
+    this.isFirstTemplateSelected = true;
+    this.isSixthTemplateSelected = true;
+    this.isSecondTemplateSelected = false;
+    this.isThirdTemplateSelected = false;
+    this.isFourthTemplateSelected = false;
+    this.isFirstFourthTemplateSelected = false;
+  }
+
   attachExtensions(): Extensions {
 
     var extensions: Extensions = new Extensions();
@@ -193,25 +253,25 @@ export class CertificateIssuingComponent implements OnInit {
     var basicConstraints: ExtensionsBasicConstraints = new ExtensionsBasicConstraints();
 
     // Attach key usages
-    keyUsage.digitalSignature = this.thirdFormGroup.value.digitalSignature;
-    keyUsage.nonRepudation = this.thirdFormGroup.value.nonRepudiation;
-    keyUsage.keyEncipherment = this.thirdFormGroup.value.keyEncipherment;
-    keyUsage.dataEncipherment = this.thirdFormGroup.value.dataEncipherment;
-    keyUsage.keyAgreement = this.thirdFormGroup.value.keyAgreement;
-    keyUsage.keyCertSign = this.thirdFormGroup.value.keyCertSign;
-    keyUsage.crlSign = this.thirdFormGroup.value.crlSign;
-    keyUsage.encipherOnly = this.thirdFormGroup.value.encipherOnly;
-    keyUsage.decipherOnly = this.thirdFormGroup.value.decipherOnly;
-    keyUsage.critical = this.thirdFormGroup.value.criticalKeyUsage;
+    keyUsage.digitalSignature = this.fourthFormGroup.value.digitalSignature;
+    keyUsage.nonRepudation = this.fourthFormGroup.value.nonRepudiation;
+    keyUsage.keyEncipherment = this.fourthFormGroup.value.keyEncipherment;
+    keyUsage.dataEncipherment = this.fourthFormGroup.value.dataEncipherment;
+    keyUsage.keyAgreement = this.fourthFormGroup.value.keyAgreement;
+    keyUsage.keyCertSign = this.fourthFormGroup.value.keyCertSign;
+    keyUsage.crlSign = this.fourthFormGroup.value.crlSign;
+    keyUsage.encipherOnly = this.fourthFormGroup.value.encipherOnly;
+    keyUsage.decipherOnly = this.fourthFormGroup.value.decipherOnly;
+    keyUsage.critical = this.fourthFormGroup.value.criticalKeyUsage;
     extensions.keyUsage = keyUsage;
 
     // Attach basic constraints
-    if (this.isSelfSigned || this.thirdFormGroup.value.subjectType === "CA") {
+    if (this.isSelfSigned || this.fourthFormGroup.value.subjectType === "CA") {
       basicConstraints.certificateAuthority = true;
     } else {
       basicConstraints.certificateAuthority = false;
     }
-    basicConstraints.critical = this.thirdFormGroup.value.criticalBasicConstraints;
+    basicConstraints.critical = this.fourthFormGroup.value.criticalBasicConstraints;
     extensions.basicConstraints = basicConstraints;
 
 
@@ -219,6 +279,8 @@ export class CertificateIssuingComponent implements OnInit {
 
     return extensions;
   }
+
+ 
 
 
 }

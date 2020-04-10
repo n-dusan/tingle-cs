@@ -2,8 +2,34 @@
     *ngIf="!spin && !success">
     <h1>New Certificate</h1>
     <mat-horizontal-stepper [linear]="isLinear" fxFlex="100%" fxLayout="column" fxLayoutAlign="center center" #stepper>
-        <mat-step [stepControl]="firstFormGroup">
-            <form [formGroup]="firstFormGroup" fxFlex="80%" fxLayout="column" fxLayoutAlign="center center"
+
+        <mat-step>
+            <form fxFlex="80%" fxLayout="column" fxLayoutAlign="center center" (ngSubmit)="onNext1Click()">
+                <ng-template matStepLabel>Choose template</ng-template>
+                <mat-card>
+                    <mat-card-content>
+                        <h2 class="example-h2">Check the template</h2>
+                         <mat-form-field>
+                                <mat-label>Check the template</mat-label>
+                            <mat-select>
+                                <mat-option value="firstTemplate" (click)="selectFirstTemplate()">Digital Signature, Key Agreement</mat-option>
+                                <mat-option value="secondTemplate" (click)="selectSecondTemplate()">Key Cert Sign, CRL Sign</mat-option>
+                                <mat-option value="thirdTemplate" (click)="selectThirdTemplate()">Non Repudiation, Data Encipherment</mat-option>
+                                <mat-option value="fourthTemplate" (click)="selectFourthTemplate()">Encipher Only, Decipher Only</mat-option>
+                                <mat-option value="fifthTemplate" (click)="selectFifthTemplate()">Digital Signature</mat-option>
+                                <mat-option value="sixthTemplate" (click)="selectSixthTemplate()">Digital Signature, Key Encipherment</mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                    </mat-card-content>
+                </mat-card>
+
+            </form>
+
+        </mat-step>
+
+        <!----------------------------------------------------------------------------------------------------->
+        <mat-step [stepControl]="secondFormGroup">
+            <form [formGroup]="secondFormGroup" fxFlex="80%" fxLayout="column" fxLayoutAlign="center center"
                 (ngSubmit)="onNext1Click()">
                 <ng-template matStepLabel>Fill out Subject Data</ng-template>
                 <mat-card class="form-section" fxLayout="column">
@@ -51,12 +77,12 @@
                 </mat-card>
                 <div>
                     <button mat-raised-button color="accent" type="submit" matStepperNext
-                        [disabled]="!firstFormGroup.valid">Next</button>
+                        [disabled]="!secondFormGroup.valid">Next</button>
                 </div>
             </form>
         </mat-step>
-        <mat-step [stepControl]="secondFormGroup">
-            <form [formGroup]="secondFormGroup" fxFlex="100%" fxLayout="column" fxLayoutAlign="center center">
+        <mat-step [stepControl]="thirdFormGroup">
+            <form [formGroup]="thirdFormGroup" fxFlex="100%" fxLayout="column" fxLayoutAlign="center center">
                 <ng-template matStepLabel>Fill out Issuer Data</ng-template>
                 <mat-card class="form-section" fxLayout="column">
                     <mat-card-header>
@@ -124,7 +150,7 @@
 
         </mat-step>
         <mat-step>
-            <form [formGroup]="thirdFormGroup" fxFlex="100%" fxLayout="column" fxLayoutAlign="center center"
+            <form [formGroup]="fourthFormGroup" fxFlex="100%" fxLayout="column" fxLayoutAlign="center center"
                 (submit)="onDoneClick()">
                 <ng-template matStepLabel>Fill out Other Info</ng-template>
                 <mat-card class="form-section" fxLayout="column">
@@ -133,29 +159,28 @@
                     </mat-card-header>
 
                     <h3>Extensions:</h3>
-                    
-                    <div fxFlex="100%" fxLayout="row" >
+
+                    <div fxFlex="100%" fxLayout="row">
                         <h4 fxFlex="20%">Key Usage:</h4>
                         <div fxFlex fxLayout fxLayoutAlign="flex-end"></div>
-                        <mat-checkbox formControlName="criticalKeyUsage" 
-                        matTooltip="Is this information critical?">
+                        <mat-checkbox formControlName="criticalKeyUsage" matTooltip="Is this information critical?">
                             <mat-icon>priority_high</mat-icon>
                         </mat-checkbox>
                     </div>
                     <section fxFlex fxLayout="row" fxLayoutAlign="center center">
                         <div>
-                            <mat-checkbox formControlName="digitalSignature">Digital Signature</mat-checkbox> <br>
-                            <mat-checkbox formControlName="keyEncipherment">Key Encipherment</mat-checkbox> <br>
-                            <mat-checkbox formControlName="nonRepudiation">Non Repudiation</mat-checkbox> <br>
-                            <mat-checkbox formControlName="dataEncipherment">Data Encipherment</mat-checkbox> <br>
-                            <mat-checkbox formControlName="keyAgreement">Key Agreement</mat-checkbox> <br>
+                            <mat-checkbox formControlName="digitalSignature" [(ngModel)]="isFirstTemplateSelected">Digital Signature</mat-checkbox> <br>
+                            <mat-checkbox formControlName="keyEncipherment" [(ngModel)]="isSixthTemplateSelected">Key Encipherment</mat-checkbox> <br>
+                            <mat-checkbox formControlName="nonRepudiation" [(ngModel)]="isThirdTemplateSelected">Non Repudiation</mat-checkbox> <br>
+                            <mat-checkbox formControlName="dataEncipherment" [(ngModel)]="isThirdTemplateSelected">Data Encipherment</mat-checkbox> <br>
+                            <mat-checkbox formControlName="keyAgreement" [(ngModel)]="isFirstFourthTemplateSelected">Key Agreement</mat-checkbox> <br>
                         </div>
                         <div style="width: 15px;"></div>
                         <div>
-                            <mat-checkbox formControlName="keyCertSign">Key Cert Sign</mat-checkbox> <br>
-                            <mat-checkbox formControlName="crlSign">cRLSign</mat-checkbox> <br>
-                            <mat-checkbox formControlName="encipherOnly">Encipher Only</mat-checkbox> <br>
-                            <mat-checkbox formControlName="decipherOnly">Decipher Only</mat-checkbox> <br>
+                            <mat-checkbox formControlName="keyCertSign" [(ngModel)]="isSecondTemplateSelected">Key Cert Sign</mat-checkbox> <br>
+                            <mat-checkbox formControlName="crlSign" [(ngModel)]="isSecondTemplateSelected">CRLSign</mat-checkbox> <br>
+                            <mat-checkbox formControlName="encipherOnly" [(ngModel)]="isFourthTemplateSelected">Encipher Only</mat-checkbox> <br>
+                            <mat-checkbox formControlName="decipherOnly" [(ngModel)]="isFourthTemplateSelected">Decipher Only</mat-checkbox> <br>
                         </div>
 
                     </section>
@@ -180,13 +205,13 @@
                             <input type="text" matInput value="CA" disabled>
                         </mat-form-field>
                         <mat-checkbox formControlName="criticalBasicConstraints"
-                        matTooltip="Is this information critical?">
+                            matTooltip="Is this information critical?">
                             <mat-icon>priority_high</mat-icon>
                         </mat-checkbox>
                     </div>
 
 
-                    
+
 
                     <mat-form-field>
                         <mat-label>Password:</mat-label>
