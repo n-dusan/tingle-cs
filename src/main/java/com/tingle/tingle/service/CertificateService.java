@@ -356,8 +356,7 @@ public class CertificateService {
 			}
 
 			if (converter.isSelfSigned(chain[chain.length - 1])) {
-
-				// ocsp chain validation
+				// ocsp chain validation -> check if any certificate in the chain is revoked
 				for (X509Certificate x509Cert : chain) {
 					OCSPResponse response = checkCertificate(x509Cert.getSerialNumber().toString());
 					// if a node in chain is revoked or unknown -> drop the chain
@@ -366,7 +365,11 @@ public class CertificateService {
 					}
 				}
 				System.out.println("==========I AM GROOT");
-				return true;
+
+				//better exception handling, PLZ.
+				boolean ret = validateExtensions(chain);
+
+				return ret;
 			}
 
 		} catch (CertificateException e) {
@@ -378,11 +381,6 @@ public class CertificateService {
 		} catch (NoSuchProviderException e) {
 			e.printStackTrace();
 		}
-
-		// for now, just set the appropriate certificate to invalid
-//        Certificate invalidCertificate = certificateRepository.findCertificateBySerialNumber(certificate.getSerialNumber().toString());
-//        invalidCertificate.setActive(false);
-//        this.certificateRepository.save(invalidCertificate);
 
 		return false;
 	}
@@ -463,6 +461,27 @@ public class CertificateService {
 
 		}
 
+	}
+
+	/** TODO: better exception handling
+	 * this should never actually happen.
+	 * */
+	private boolean validateExtensions(X509Certificate[] chain) throws CertificateEncodingException {
+
+		if(chain.length > 1) {
+
+			//skip first element
+			for (int i = 1; i < chain.length; i++) {
+				Extension basicConstraints = new JcaX509CertificateHolder(chain[i]).getExtension(Extension.basicConstraints);
+				BasicConstraints bc = BasicConstraints.getInstance(basicConstraints.getExtnValue().getOctets());
+				//if you aren't cA, are a parent node, and you're critical, you're out, kiddo.
+				if(!bc.isCA() && basicConstraints.isCritical()) {
+					return false;
+				}
+			}
+		}
+
+		return true;
 	}
 
 }
