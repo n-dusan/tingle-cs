@@ -80,17 +80,17 @@ public class CertificateGenerator {
 
             //subject key identifier
 			//The SubjectKeyIdentifier extension is a standard X509v3 extension which MUST NOT be marked as being critical. .
-			JcaX509ExtensionUtils extensionUtils = new JcaX509ExtensionUtils();
-            SubjectKeyIdentifier subjectKeyIdentifier = extensionUtils.createSubjectKeyIdentifier(subjectData.getPublicKey());
-			certGen.addExtension(Extension.subjectKeyIdentifier, false, subjectKeyIdentifier);
+//			JcaX509ExtensionUtils extensionUtils = new JcaX509ExtensionUtils();
+//            SubjectKeyIdentifier subjectKeyIdentifier = extensionUtils.createSubjectKeyIdentifier(subjectData.getPublicKey());
+//			certGen.addExtension(Extension.subjectKeyIdentifier, false, subjectKeyIdentifier);
 
 
 			//authority key identifier
 			//if publicKey isn't null means we aren't a self-signed certificate, so we fill out the authority key identifier
-			if(issuerData.getPublicKey() != null) {
-				AuthorityKeyIdentifier authorityKeyIdentifier = extensionUtils.createAuthorityKeyIdentifier(issuerData.getPublicKey());
-				certGen.addExtension(Extension.authorityKeyIdentifier, false, authorityKeyIdentifier);
-			}
+//			if(issuerData.getPublicKey() != null) {
+//				AuthorityKeyIdentifier authorityKeyIdentifier = extensionUtils.createAuthorityKeyIdentifier(issuerData.getPublicKey());
+//				certGen.addExtension(Extension.authorityKeyIdentifier, false, authorityKeyIdentifier);
+//			}
 
             JcaX509CertificateConverter certConverter = new JcaX509CertificateConverter();
             certConverter = certConverter.setProvider("BC");
@@ -108,8 +108,8 @@ public class CertificateGenerator {
             e.printStackTrace();
         } catch (CertificateException e) {
             e.printStackTrace();
-        } catch (NoSuchAlgorithmException e) {
-			e.printStackTrace();
+//        } catch (NoSuchAlgorithmException e) {
+//			e.printStackTrace();
 		}
 		return null;
     }

@@ -27,6 +27,15 @@ export class CertificateIssuingComponent implements OnInit {
   isCRLSelected = false;
   isEncSelected = false;
   isDecSelected = false;
+
+  isClientAuth = false;
+  isCodeSigning = false;
+  isEmailProtection = false;
+  isOcspSigning = false;
+  isServerAuth = false;
+  isTimeStamping = false;
+
+
   firstFormGroup: FormGroup;
   secondFormGroup: FormGroup;
   thirdFormGroup: FormGroup;
@@ -311,13 +320,13 @@ export class CertificateIssuingComponent implements OnInit {
     // Attach Extended Key Usage in case of end-entity cert
     if (this.selectedSubjectType === 'end-entity') {
       console.log('END-ENTITY !!!')
-      extendedKeyUsage.critical = this.thirdFormGroup.value.criticalExtendedKeyUsage;
-      extendedKeyUsage.clientAuth = this.thirdFormGroup.value.clientAuth;
-      extendedKeyUsage.codeSigning = this.thirdFormGroup.value.codeSigning;
-      extendedKeyUsage.emailProtection = this.thirdFormGroup.value.emailProtection;
-      extendedKeyUsage.ocspSigning = this.thirdFormGroup.value.ocspSigning;
-      extendedKeyUsage.serverAuth = this.thirdFormGroup.value.serverAuth;
-      extendedKeyUsage.timeStamping = this.thirdFormGroup.value.timeStamping;
+      extendedKeyUsage.critical = this.fourthFormGroup.value.criticalExtendedKeyUsage;
+      extendedKeyUsage.clientAuth = this.fourthFormGroup.value.clientAuth;
+      extendedKeyUsage.codeSigning = this.fourthFormGroup.value.codeSigning;
+      extendedKeyUsage.emailProtection = this.fourthFormGroup.value.emailProtection;
+      extendedKeyUsage.ocspSigning = this.fourthFormGroup.value.ocspSigning;
+      extendedKeyUsage.serverAuth = this.fourthFormGroup.value.serverAuth;
+      extendedKeyUsage.timeStamping = this.fourthFormGroup.value.timeStamping;
 
       extensions.extendedKeyUsage = extendedKeyUsage;
     }

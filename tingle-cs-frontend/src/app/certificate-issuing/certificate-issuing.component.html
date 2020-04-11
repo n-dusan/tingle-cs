@@ -229,16 +229,16 @@
                         </div>
                         <section fxFlex fxLayout="row" fxLayoutAlign="center center">
                             <div>
-                                <mat-checkbox formControlName="clientAuth">Client Auth</mat-checkbox> <br>
-                                <mat-checkbox formControlName="codeSigning">Code Signing</mat-checkbox> <br>
-                                <mat-checkbox formControlName="emailProtection">Email Protection</mat-checkbox> <br>
+                                <mat-checkbox formControlName="clientAuth" [(ngModel)]="isClientAuth">Client Auth</mat-checkbox> <br>
+                                <mat-checkbox formControlName="codeSigning" [(ngModel)]="isCodeSigning">Code Signing</mat-checkbox> <br>
+                                <mat-checkbox formControlName="emailProtection" [(ngModel)]="isEmailProtection">Email Protection</mat-checkbox> <br>
 
                             </div>
                             <div style="width: 15px;"></div>
                             <div>
-                                <mat-checkbox formControlName="ocspSigning">OCSP Signing</mat-checkbox> <br>
-                                <mat-checkbox formControlName="serverAuth">Server Auth</mat-checkbox> <br>
-                                <mat-checkbox formControlName="timeStamping">Time Stamping</mat-checkbox> <br>
+                                <mat-checkbox formControlName="ocspSigning" [(ngModel)]="isOcspSigning">OCSP Signing</mat-checkbox> <br>
+                                <mat-checkbox formControlName="serverAuth" [(ngModel)]="isServerAuth">Server Auth</mat-checkbox> <br>
+                                <mat-checkbox formControlName="timeStamping" [(ngModel)]="isTimeStamping">Time Stamping</mat-checkbox> <br>
                             </div>
 
                         </section>
