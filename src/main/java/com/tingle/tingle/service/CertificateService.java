@@ -112,7 +112,6 @@ public class CertificateService {
 			X500Name subjName = new JcaX509CertificateHolder(certificate).getSubject();
 			X500Name issuerName = new JcaX509CertificateHolder(certificate).getIssuer();
 
-			// TODO attach other extensions
 			ExtensionsDTO extensionsDTO = new ExtensionsDTO();
 			extensionsDTO.setBasicConstraints(certificateGenerator.generateBasicConstraints(certificate));
 			extensionsDTO.setKeyUsage(certificateGenerator.generateKeyUsage(certificate));
