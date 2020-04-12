@@ -29,6 +29,7 @@ import java.util.stream.Stream;
 
 import javax.naming.InvalidNameException;
 
+import com.tingle.tingle.exception.ValidateException;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.X500NameBuilder;
 import org.bouncycastle.asn1.x500.style.BCStyle;
