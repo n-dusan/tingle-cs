@@ -25,6 +25,9 @@ export class AllCertificatesListComponent implements OnInit, OnDestroy {
   filterTypes: string[] = ['All', 'Active', 'Inactive'];
   selectedFilter: string = 'All';
 
+  //filter for ocsp request
+  ocspFilter: string = '';
+
   dataSource: MatTableDataSource<Certificate> = new MatTableDataSource;
 
   @ViewChild(MatPaginator, {static: true}) paginator: MatPaginator;
@@ -48,6 +51,18 @@ export class AllCertificatesListComponent implements OnInit, OnDestroy {
 
   onCertificateDetails(certificate: Certificate) {
     this.certificateService.getCertificate(certificate.serialNumber, certificate.certificateRole);
+  }
+
+
+  applyFilter() {
+
+    console.log('ocsp filter', this.ocspFilter)
+
+    this.dataSource.filter = this.ocspFilter.trim().toLowerCase();
+
+    if (this.dataSource.paginator) {
+      this.dataSource.paginator.firstPage();
+    }
   }
 
 

@@ -6,6 +6,10 @@ tr {
     cursor: pointer;    
 }
 
+mat-form-field {
+  width: 100%;
+}
+
   .example-loading-shade {
   position: absolute;
   top: 0;

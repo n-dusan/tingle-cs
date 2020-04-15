@@ -9,6 +9,7 @@ import java.util.List;
 
 import javax.naming.InvalidNameException;
 
+import com.tingle.tingle.domain.enums.OCSPResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -178,5 +179,10 @@ public class CertificateController {
             e.printStackTrace();
         }
         return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @GetMapping(value="/ocsp/{serialNumber}")
+    public ResponseEntity<OCSPResponse> ocspCheck(@PathVariable("serialNumber") String serialNumber) {
+        return new ResponseEntity<OCSPResponse>(certificateService.checkCertificate(serialNumber), HttpStatus.OK);
     }
 }

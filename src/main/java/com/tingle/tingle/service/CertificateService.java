@@ -270,7 +270,7 @@ public class CertificateService {
 
 		// save the cert in the keystore
 		keyStoreService.saveCertificate(cert, subject.getSerialNumber(), subject.getPrivateKey(), Role.END_ENTITY);
-		
+
         // save the cert in the database -> to be used when ocsp implementation occurs
 		this.certificateRepository.save(new Certificate(subject.getSerialNumber(), true, Role.END_ENTITY));
 		System.out.println("===================== SUCCESS =====================");
