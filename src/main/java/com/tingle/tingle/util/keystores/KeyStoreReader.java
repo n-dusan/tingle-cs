@@ -17,6 +17,8 @@ public class KeyStoreReader {
 
     private KeyStore keyStore;
 
+
+
     public KeyStoreReader() {
         try {
             keyStore = KeyStore.getInstance("PKCS12");
@@ -188,5 +190,9 @@ public class KeyStoreReader {
         }
 
 
+    }
+
+    public KeyStore getKeyStore() {
+        return keyStore;
     }
 }

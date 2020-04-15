@@ -1,15 +1,7 @@
 package com.tingle.tingle.service;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.math.BigInteger;
-import java.security.InvalidKeyException;
-import java.security.KeyPair;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.PrivateKey;
-import java.security.SecureRandom;
+import java.io.*;
+import java.security.*;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateExpiredException;
@@ -17,27 +9,19 @@ import java.security.cert.CertificateNotYetValidException;
 import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.naming.InvalidNameException;
 
-import com.tingle.tingle.exception.ValidateException;
 import org.bouncycastle.asn1.x500.X500Name;
-import org.bouncycastle.asn1.x500.X500NameBuilder;
-import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.bouncycastle.asn1.x509.BasicConstraints;
 import org.bouncycastle.asn1.x509.Extension;
-import org.bouncycastle.asn1.x509.KeyUsage;
 import org.bouncycastle.cert.CertIOException;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder;
+import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -46,12 +30,9 @@ import com.tingle.tingle.domain.Certificate;
 import com.tingle.tingle.domain.certificates.CertificateGenerator;
 import com.tingle.tingle.domain.certificates.IssuerData;
 import com.tingle.tingle.domain.certificates.SubjectData;
-import com.tingle.tingle.domain.dto.BasicConstraintsDTO;
 import com.tingle.tingle.domain.dto.CertificateDTO;
 import com.tingle.tingle.domain.dto.CertificateX500NameDTO;
-import com.tingle.tingle.domain.dto.ExtendedKeyUsageDTO;
 import com.tingle.tingle.domain.dto.ExtensionsDTO;
-import com.tingle.tingle.domain.dto.KeyUsageDTO;
 import com.tingle.tingle.domain.enums.CRLReason;
 import com.tingle.tingle.domain.enums.OCSPResponse;
 import com.tingle.tingle.domain.enums.Role;
@@ -148,7 +129,6 @@ public class CertificateService {
 
 		List<X509Certificate> cAJoinedList = findCACertificates();
 
-		// duplira root u cA; ovo je quickfix
 		if (cAJoinedList == null) {
 			return null;
 		}
@@ -267,7 +247,6 @@ public class CertificateService {
 			throws ParseException, CertIOException {
 		SubjectData subject = certificateGenerator.generateSubjectData(subjectDTO);
 
-		String keyStorePassword = "";
 		IssuerData issuer;
 		System.out.println("issuer dto " + issuerDTO.getSerialNumber());
 		issuer = keyStoreReader.readIssuerFromStore(config.getRootKeyStoreLocation(), issuerDTO.getSerialNumber(),
@@ -291,8 +270,8 @@ public class CertificateService {
 
 		// save the cert in the keystore
 		keyStoreService.saveCertificate(cert, subject.getSerialNumber(), subject.getPrivateKey(), Role.END_ENTITY);
-
-		// save the cert in the database -> to be used when ocsp implementation occurs
+		
+        // save the cert in the database -> to be used when ocsp implementation occurs
 		this.certificateRepository.save(new Certificate(subject.getSerialNumber(), true, Role.END_ENTITY));
 		System.out.println("===================== SUCCESS =====================");
 	}
@@ -409,28 +388,35 @@ public class CertificateService {
 		}
 
 		X509Certificate x509Certificate = (X509Certificate) certificate;
-		FileOutputStream os = null;
+
+		JcaPEMWriter pemWrt = null;
 		try {
+
+            List<X509Certificate> allCertificates = keyStoreService.findKeyStoreCertificates(null);
+            X509Certificate[] chain = CConverter.buildPath(x509Certificate, allCertificates);
 
 			path = "./.ks/" + role.toString() + "-" + serialNumber + ".cer";
 
-			os = new FileOutputStream(path);
-			os.write("--BEGIN CERTIFICATE--\n".getBytes("US-ASCII"));
-			os.write(Base64.getEncoder().encode(x509Certificate.getEncoded()));
-			os.write("--END CERTIFICATE--\n".getBytes("US-ASCII"));
-			os.close();
+			pemWrt = new JcaPEMWriter(new FileWriter(path));
+
+			for (X509Certificate x509Certificate1 : chain) {
+				pemWrt.writeObject(x509Certificate1);
+			}
+			pemWrt.flush();
+			pemWrt.close();
+
+//			os.write("--BEGIN CERTIFICATE--\n".getBytes("US-ASCII"));
+//			os.write(Base64.getEncoder().encode(x509Certificate.getEncoded()));
+//			os.write("--END CERTIFICATE--\n".getBytes("US-ASCII"));
 
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
-		} catch (CertificateEncodingException e) {
-			e.printStackTrace();
 		} finally {
-			if (os != null) {
+			if (pemWrt != null) {
 				return true;
 			}
-
 			return false;
 		}
 
