@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, Input } from '@angular/core';
 import { Certificate } from '../../shared/certificate.model';
 import { Subscription } from 'rxjs';
-import { CertificatesService } from '../certificates.service';
+import { CertificatesService } from '../../certificates.service';
 
 import { MatDialog } from '@angular/material/dialog';
 
@@ -13,7 +13,7 @@ import { RevokeDialogComponent } from '../revoke-dialog/revoke-dialog.component'
   styleUrls: ['./all-certificates-item.component.css']
 })
 export class AllCertificatesItemComponent implements OnInit, OnDestroy {
-  
+
   selectedCertificate: Certificate[];
   private selectedSubscription: Subscription;
 

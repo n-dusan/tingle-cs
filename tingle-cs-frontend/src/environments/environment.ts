@@ -4,7 +4,10 @@
 
 export const environment = {
   production: false,
-  rootUrl: 'http://localhost:8080',
+  protocol: 'http',
+  domainUrl: 'localhost',
+  port: '8080',
+  ocsp: '/api/ocsp',
   certificate: '/api/certificate'
 };
 

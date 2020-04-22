@@ -1,5 +1,5 @@
 
-<div style="margin-top: 25px; margin-left: 25px;"> 
+<div style="margin-top: 25px; margin-left: 25px;">
 <mat-form-field class="example-form-field">
   <input matInput type="text" placeholder="Check out certificate" [(ngModel)]="ocspFilter"/>
   <button mat-button matSuffix mat-icon-button aria-label="Clear" (click)="applyFilter()">
@@ -8,11 +8,11 @@
 </mat-form-field>
 
 <div class="mat-elevation-z8">
-  
+
   <table mat-table [dataSource]="dataSource">
     <div class="example-loading-shade"
        *ngIf="isLoadingResults">
-    <mat-spinner *ngIf="isLoadingResults"></mat-spinner>
+    <mat-spinner *ngIf="isLoadingResults" mode="indeterminate"></mat-spinner>
   </div>
 
   <ng-container matColumnDef="serial number">

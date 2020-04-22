@@ -1,0 +1,22 @@
+<h2 mat-dialog-title>Online certificate status protocol </h2>
+<mat-dialog-content class="mat-typography">
+
+  <form [formGroup]="serialForm">
+    <mat-form-field>
+      <mat-label for="checkSerialNumber">Serial number: </mat-label>
+      <input id="checkSerialNumber" matInput type="text" name="serialNumber" required formControlName="serialNumber">
+    </mat-form-field>
+  </form>
+
+  <br/>
+  <h3 *ngIf="status"> Server responded with - {{status}}</h3>
+  <mat-progress-spinner diameter="30" *ngIf="loading" mode="indeterminate"></mat-progress-spinner>
+
+  <br/>
+  <br/>
+
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Close</button>
+  <button mat-raised-button cdkFocusInitial color="primary" (click)="onObtainClick()">Obtain status</button>
+</mat-dialog-actions>

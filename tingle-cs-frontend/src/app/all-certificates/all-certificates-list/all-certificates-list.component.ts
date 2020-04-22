@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, Output, ViewChild } from '@angular/core';
 import { Certificate } from '../../shared/certificate.model';
-import { CertificatesService } from '../certificates.service';
+import { CertificatesService } from '../../certificates.service';
 import { Subscription } from 'rxjs';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatTableDataSource } from '@angular/material/table';
@@ -21,7 +21,7 @@ export class AllCertificatesListComponent implements OnInit, OnDestroy {
   displayedCertificates: Certificate[];
 
   displayedColumns: string[] = ['serial number', 'active', 'certificate authority', 'radio'];
-  
+
   filterTypes: string[] = ['All', 'Active', 'Inactive'];
   selectedFilter: string = 'All';
 
@@ -33,7 +33,7 @@ export class AllCertificatesListComponent implements OnInit, OnDestroy {
   @ViewChild(MatPaginator, {static: true}) paginator: MatPaginator;
 
   isLoadingResults: boolean = true;
-  
+
   constructor(private certificateService: CertificatesService) { }
 
   ngOnInit(): void {

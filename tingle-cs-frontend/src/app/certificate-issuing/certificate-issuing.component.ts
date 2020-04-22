@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { Certificate } from '../shared/certificate.model';
-import { CertificatesService } from '../all-certificates/certificates.service';
+import { CertificatesService } from '../certificates.service';
 import { EndEntityCertificate } from '../shared/end-entity-cert.model';
 import { Extensions } from '../shared/extensions.model';
 import { ExtensionsKeyUsage } from '../shared/key-usage.model';
@@ -138,7 +138,7 @@ export class CertificateIssuingComponent implements OnInit {
       const newCert = new Certificate(null, null, alias, true, role, cn, o, l, st, c, e, ou);
       newCert.extensions = this.attachExtensions();
 
-      //CHECK 
+      //CHECK
       console.log(newCert)
 
       this.makeRootRequest(newCert);
@@ -148,7 +148,7 @@ export class CertificateIssuingComponent implements OnInit {
       newCert.extensions = this.attachExtensions();
       newCert.serialNumber = this.selectedCA.serialNumber;
 
-      //CHECK 
+      //CHECK
       console.log(newCert)
 
       this.makeCARequest(newCert);
@@ -336,7 +336,7 @@ export class CertificateIssuingComponent implements OnInit {
     return extensions;
   }
 
- 
+
 
 
 }

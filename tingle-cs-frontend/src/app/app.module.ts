@@ -30,7 +30,6 @@ import { LoginComponent } from './auth/login/login.component';
 import { HeaderComponent } from './navigation/header/header.component';
 import { SidenavListComponent } from './navigation/sidenav-list/sidenav-list.component';
 import { SignupComponent } from './auth/signup/signup.component';
-import { MakeRequestComponent } from './make-request/make-request.component';
 import { HomePageComponent } from './home-page/home-page.component';
 import { AllCertificatesComponent } from './all-certificates/all-certificates.component';
 import { AllCertificatesListComponent } from './all-certificates/all-certificates-list/all-certificates-list.component';
@@ -38,6 +37,7 @@ import { AllCertificatesItemComponent } from './all-certificates/all-certificate
 import { HttpClientModule } from '@angular/common/http';
 import { CertificateIssuingComponent } from './certificate-issuing/certificate-issuing.component';
 import { RevokeDialogComponent } from './all-certificates/revoke-dialog/revoke-dialog.component';
+import { CheckCertificateComponent } from './check-certificate/check-certificate.component';
 
 
 
@@ -49,13 +49,13 @@ import { RevokeDialogComponent } from './all-certificates/revoke-dialog/revoke-d
     HeaderComponent,
     SidenavListComponent,
     SignupComponent,
-    MakeRequestComponent,
     HomePageComponent,
     AllCertificatesComponent,
     AllCertificatesListComponent,
     AllCertificatesItemComponent,
     CertificateIssuingComponent,
-    RevokeDialogComponent
+    RevokeDialogComponent,
+    CheckCertificateComponent
   ],
   imports: [
     BrowserModule,

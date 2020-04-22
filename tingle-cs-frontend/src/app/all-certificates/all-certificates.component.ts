@@ -1,5 +1,5 @@
 import { Component, OnInit} from '@angular/core';
-import { CertificatesService } from './certificates.service';
+import { CertificatesService } from '../certificates.service';
 import { Subscription } from 'rxjs';
 
 @Component({

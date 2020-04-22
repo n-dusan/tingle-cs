@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Certificate } from '../../shared/certificate.model';
 import { Subscription } from 'rxjs';
-import { CertificatesService } from '../certificates.service';
+import { CertificatesService } from '../../certificates.service';
 
 @Component({
   selector: 'app-revoke-dialog',

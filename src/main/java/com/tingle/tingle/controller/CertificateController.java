@@ -155,7 +155,7 @@ public class CertificateController {
     }
     
     @GetMapping(value = "/downloadCertificate/{serialNumber}", produces = "application/json")
-    	public ResponseEntity<Boolean> downloadCert(@PathVariable String serialNumber){
+    	public ResponseEntity<Boolean> downloadCert(@PathVariable String serialNumber) {
     		
     		Boolean ret = certificateService.downloadCertificate(serialNumber);
     		if(ret) {
@@ -181,8 +181,4 @@ public class CertificateController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @GetMapping(value="/ocsp/{serialNumber}")
-    public ResponseEntity<OCSPResponse> ocspCheck(@PathVariable("serialNumber") String serialNumber) {
-        return new ResponseEntity<OCSPResponse>(certificateService.checkCertificate(serialNumber), HttpStatus.OK);
-    }
 }
