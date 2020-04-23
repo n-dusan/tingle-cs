@@ -401,35 +401,23 @@ public class CertificateService {
 		JcaPEMWriter pemWrt = null;
 		try {
 
-            List<X509Certificate> allCertificates = keyStoreService.findKeyStoreCertificates(null);
-            X509Certificate[] chain = CConverter.buildPath(x509Certificate, allCertificates);
+            //List<X509Certificate> allCertificates = keyStoreService.findKeyStoreCertificates(null);
+            //X509Certificate[] chain = CConverter.buildPath(x509Certificate, allCertificates);
 
-			path = "./.ks/" + role.toString() + "-" + serialNumber + ".p7b";
+			path = "./.ks/" + role.toString() + "-" + serialNumber + ".crt";
 
 
 
 			pemWrt = new JcaPEMWriter(new FileWriter(path));
-			PrivateKey key;
-			if(role == Role.ROOT) {
-				key = keyStoreReader.readPrivateKey(config.getRootKeyStoreLocation(), config.getRootKeyStorePassword(), x509Certificate.getSerialNumber().toString(), config.getRootKeyStorePassword());
-			} else if( role == Role.INTERMEDIATE) {
-				key = keyStoreReader.readPrivateKey(config.getIntermediateKeyStoreLocation(), config.getIntermediateKeyStorePassword(), x509Certificate.getSerialNumber().toString(), config.getIntermediateKeyStorePassword());
-			} else {
-				key = keyStoreReader.readPrivateKey(config.getEndEntityKeyStoreLocation(), config.getEndEntityKeyStorePassword(), x509Certificate.getSerialNumber().toString(), config.getEndEntityKeyStorePassword());
-			}
 
-			byte[] data = this.encryptCertToPKCS7(x509Certificate, key, chain);
-			FileOutputStream outputStream = null;
-			outputStream = new FileOutputStream(path);
-			outputStream.write("-----BEGIN CERTIFICATE-----\n".getBytes("US-ASCII"));
-			outputStream.write(Base64.encodeBase64(data, true));
-			outputStream.write("-----END CERTIFICATE-----\n".getBytes("US-ASCII"));
+//			FileOutputStream outputStream = null;
+//			outputStream = new FileOutputStream(path);
 //			outputStream.close();
-//
-//			pemWrt.writeObject(data);
-//
-//			pemWrt.flush();
-//			pemWrt.close();
+
+			pemWrt.writeObject(x509Certificate);
+
+			pemWrt.flush();
+			pemWrt.close();
 
 //			os.write("--BEGIN CERTIFICATE--\n".getBytes("US-ASCII"));
 //			os.write(Base64.getEncoder().encode(x509Certificate.getEncoded()));
