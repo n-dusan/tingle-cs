@@ -10,18 +10,27 @@ import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.naming.InvalidNameException;
 
+import org.apache.tomcat.util.codec.binary.Base64;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.BasicConstraints;
 import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.cert.CertIOException;
+import org.bouncycastle.cert.jcajce.JcaCertStore;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder;
+import org.bouncycastle.cms.*;
+import org.bouncycastle.cms.jcajce.JcaSignerInfoGeneratorBuilder;
 import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
+import org.bouncycastle.operator.ContentSigner;
+import org.bouncycastle.operator.OperatorCreationException;
+import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+import org.bouncycastle.operator.jcajce.JcaDigestCalculatorProviderBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -395,15 +404,32 @@ public class CertificateService {
             List<X509Certificate> allCertificates = keyStoreService.findKeyStoreCertificates(null);
             X509Certificate[] chain = CConverter.buildPath(x509Certificate, allCertificates);
 
-			path = "./.ks/" + role.toString() + "-" + serialNumber + ".cer";
+			path = "./.ks/" + role.toString() + "-" + serialNumber + ".p7b";
+
+
 
 			pemWrt = new JcaPEMWriter(new FileWriter(path));
-
-			for (X509Certificate x509Certificate1 : chain) {
-				pemWrt.writeObject(x509Certificate1);
+			PrivateKey key;
+			if(role == Role.ROOT) {
+				key = keyStoreReader.readPrivateKey(config.getRootKeyStoreLocation(), config.getRootKeyStorePassword(), x509Certificate.getSerialNumber().toString(), config.getRootKeyStorePassword());
+			} else if( role == Role.INTERMEDIATE) {
+				key = keyStoreReader.readPrivateKey(config.getIntermediateKeyStoreLocation(), config.getIntermediateKeyStorePassword(), x509Certificate.getSerialNumber().toString(), config.getIntermediateKeyStorePassword());
+			} else {
+				key = keyStoreReader.readPrivateKey(config.getEndEntityKeyStoreLocation(), config.getEndEntityKeyStorePassword(), x509Certificate.getSerialNumber().toString(), config.getEndEntityKeyStorePassword());
 			}
-			pemWrt.flush();
-			pemWrt.close();
+
+			byte[] data = this.encryptCertToPKCS7(x509Certificate, key, chain);
+			FileOutputStream outputStream = null;
+			outputStream = new FileOutputStream(path);
+			outputStream.write("-----BEGIN CERTIFICATE-----\n".getBytes("US-ASCII"));
+			outputStream.write(Base64.encodeBase64(data, true));
+			outputStream.write("-----END CERTIFICATE-----\n".getBytes("US-ASCII"));
+//			outputStream.close();
+//
+//			pemWrt.writeObject(data);
+//
+//			pemWrt.flush();
+//			pemWrt.close();
 
 //			os.write("--BEGIN CERTIFICATE--\n".getBytes("US-ASCII"));
 //			os.write(Base64.getEncoder().encode(x509Certificate.getEncoded()));
@@ -420,6 +446,21 @@ public class CertificateService {
 			return false;
 		}
 
+	}
+
+	private byte[] encryptCertToPKCS7(X509Certificate certificate, Key key, X509Certificate[] certificates)
+			throws CertificateEncodingException, CMSException, NoSuchProviderException, NoSuchAlgorithmException, IOException, OperatorCreationException {
+		CMSSignedDataGenerator generator = new CMSSignedDataGenerator();
+
+		ContentSigner sha256Signer = new JcaContentSignerBuilder("SHA256withRSA").setProvider("BC").build((PrivateKey) key);
+		generator.addSignerInfoGenerator(new JcaSignerInfoGeneratorBuilder(new JcaDigestCalculatorProviderBuilder()
+				.setProvider("BC").build())
+				.build(sha256Signer, certificate));
+		generator.addCertificates(new JcaCertStore(Arrays.stream(certificates).collect(Collectors.toList())));
+		CMSTypedData content = new CMSProcessableByteArray(certificate.getEncoded());
+
+		CMSSignedData signedData = generator.generate(content, true);
+		return signedData.getEncoded();
 	}
 
 	public void revokeCertificate(String serialNumber, CRLReason reason)
