@@ -21,6 +21,8 @@ import java.util.stream.Collectors;
 
 import com.tingle.tingle.domain.dto.EndEntityDTO;
 
+import javax.naming.InvalidNameException;
+
 
 @Service
 public class KeyStoreService {
@@ -107,7 +109,9 @@ public class KeyStoreService {
 		} catch (CertIOException e) {
 			System.out.println("ERROR DURING GENERATING CERTIFICATE");
 			e.printStackTrace();
-		}
+		} catch (InvalidNameException e) {
+            e.printStackTrace();
+        }
 
         //sacuvaj stanje keystora
         keyStoreWriter.saveKeyStore(config.getRootKeyStoreLocation(), config.getRootKeyStorePassword().toCharArray());

@@ -11,15 +11,12 @@ import java.util.*;
 import com.tingle.tingle.config.KeyStoreConfig;
 import com.tingle.tingle.domain.dto.*;
 import com.tingle.tingle.domain.enums.Role;
+import com.tingle.tingle.util.CConverter;
+import com.zaxxer.hikari.util.FastList;
+import org.bouncycastle.asn1.DERSequence;
 import org.bouncycastle.asn1.x500.X500NameBuilder;
 import org.bouncycastle.asn1.x500.style.BCStyle;
-import org.bouncycastle.asn1.x509.BasicConstraints;
-import org.bouncycastle.asn1.x509.ExtendedKeyUsage;
-import org.bouncycastle.asn1.x509.Extension;
-import org.bouncycastle.asn1.x509.KeyPurposeId;
-import org.bouncycastle.asn1.x509.KeyUsage;
-import org.bouncycastle.asn1.x509.SubjectKeyIdentifier;
-import org.bouncycastle.asn1.x509.AuthorityKeyIdentifier;
+import org.bouncycastle.asn1.x509.*;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509ExtensionUtils;
 import org.bouncycastle.cert.CertIOException;
@@ -34,8 +31,13 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.naming.InvalidNameException;
+
 @Component
 public class CertificateGenerator {
+
+	@Autowired
+	private CConverter cConverter;
 
 	@Autowired
 	private KeyStoreConfig config;
@@ -44,7 +46,7 @@ public class CertificateGenerator {
         Security.addProvider(new BouncyCastleProvider());
     }
 
-    public X509Certificate generateCertificate(SubjectData subjectData, IssuerData issuerData, ExtensionsDTO extensions) throws CertIOException {
+    public X509Certificate generateCertificate(SubjectData subjectData, IssuerData issuerData, ExtensionsDTO extensions) throws CertIOException, InvalidNameException {
         try {
 
             JcaContentSignerBuilder builder = new JcaContentSignerBuilder("SHA256WithRSAEncryption");
@@ -87,10 +89,29 @@ public class CertificateGenerator {
 
 			//authority key identifier
 			//if publicKey isn't null means we aren't a self-signed certificate, so we fill out the authority key identifier
+			AuthorityKeyIdentifier authorityKeyIdentifier;
 			if(issuerData.getPublicKey() != null) {
-				AuthorityKeyIdentifier authorityKeyIdentifier = extensionUtils.createAuthorityKeyIdentifier(issuerData.getPublicKey());
-				certGen.addExtension(Extension.authorityKeyIdentifier, false, authorityKeyIdentifier);
+				authorityKeyIdentifier = extensionUtils.createAuthorityKeyIdentifier(issuerData.getPublicKey());
+			} else {
+				authorityKeyIdentifier = extensionUtils.createAuthorityKeyIdentifier(subjectData.getPublicKey());
+
 			}
+			certGen.addExtension(Extension.authorityKeyIdentifier, false, authorityKeyIdentifier);
+
+
+
+			//##### subjectAlternativeName
+			// name that points to localhost
+			List<GeneralName> altNames = new ArrayList<GeneralName>();
+			//get the CN from the existing form, there you will find the commonName that's supposed to associate to DN's
+			CertificateX500NameDTO[] x509dto = cConverter.convertFromX500Principals(subjectData.getX500name(), subjectData.getX500name());
+
+
+			altNames.add(new GeneralName(GeneralName.dNSName, x509dto[0].getCN()));
+			altNames.add(new GeneralName(GeneralName.dNSName, "localhost"));
+			altNames.add(new GeneralName(GeneralName.iPAddress, "127.0.0.1"));
+			GeneralNames subjectAltNames = GeneralNames.getInstance(new DERSequence((GeneralName[]) altNames.toArray(new GeneralName[] {})));
+			certGen.addExtension(Extension.subjectAlternativeName, false, subjectAltNames);
 
             JcaX509CertificateConverter certConverter = new JcaX509CertificateConverter();
             certConverter = certConverter.setProvider("BC");

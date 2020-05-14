@@ -31,6 +31,8 @@ import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.bouncycastle.operator.jcajce.JcaDigestCalculatorProviderBuilder;
+import org.bouncycastle.util.io.pem.PemObject;
+import org.bouncycastle.util.io.pem.PemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -181,7 +183,7 @@ public class CertificateService {
 	 *             sertifikata U ovom slucaju, issuer i subject su ista firma
 	 * @throws CertIOException
 	 */
-	public void generateSelfSignedCertificate(CertificateX500NameDTO dto) throws ParseException, CertIOException {
+	public void generateSelfSignedCertificate(CertificateX500NameDTO dto) throws ParseException, CertIOException, InvalidNameException {
 
 		// keypair za subjekta i issuera je isti, jer je self-signed sertifikat
 		SubjectData subject = certificateGenerator.generateSubjectData(dto);
@@ -253,7 +255,7 @@ public class CertificateService {
 	}
 
 	public void generateEndEntityCertificate(CertificateX500NameDTO subjectDTO, CertificateX500NameDTO issuerDTO)
-			throws ParseException, CertIOException {
+			throws ParseException, CertIOException, InvalidNameException {
 		SubjectData subject = certificateGenerator.generateSubjectData(subjectDTO);
 
 		IssuerData issuer;
@@ -398,30 +400,44 @@ public class CertificateService {
 
 		X509Certificate x509Certificate = (X509Certificate) certificate;
 
+		IssuerData issuer;
+
+		issuer = keyStoreReader.readIssuerFromStore(config.getRootKeyStoreLocation(), serialNumber,
+				config.getRootKeyStorePassword().toCharArray(), config.getRootKeyStorePassword().toCharArray());
+		if (issuer == null) {
+			issuer = keyStoreReader.readIssuerFromStore(config.getIntermediateKeyStoreLocation(), serialNumber,
+					config.getIntermediateKeyStorePassword().toCharArray(),
+					config.getIntermediateKeyStorePassword().toCharArray());
+		}
+		if( issuer == null ) {
+			issuer = keyStoreReader.readIssuerFromStore(config.getEndEntityKeyStoreLocation(), serialNumber,
+					config.getEndEntityKeyStorePassword().toCharArray(),
+					config.getEndEntityKeyStorePassword().toCharArray());
+		}
+
+		path = "./.ks/" + role.toString() + "-" + serialNumber + ".key";
+		try {
+			PemWriter writer = new PemWriter(new FileWriter(path));
+			writer.writeObject(new PemObject("PRIVATE KEY", issuer.getPrivateKey().getEncoded()));
+			writer.flush();
+			writer.close();
+		}catch (IOException e) {
+			e.printStackTrace();
+		}
+
+
+
 		JcaPEMWriter pemWrt = null;
 		try {
 
-            //List<X509Certificate> allCertificates = keyStoreService.findKeyStoreCertificates(null);
-            //X509Certificate[] chain = CConverter.buildPath(x509Certificate, allCertificates);
-
 			path = "./.ks/" + role.toString() + "-" + serialNumber + ".crt";
 
-
-
 			pemWrt = new JcaPEMWriter(new FileWriter(path));
-
-//			FileOutputStream outputStream = null;
-//			outputStream = new FileOutputStream(path);
-//			outputStream.close();
-
 			pemWrt.writeObject(x509Certificate);
-
 			pemWrt.flush();
 			pemWrt.close();
 
-//			os.write("--BEGIN CERTIFICATE--\n".getBytes("US-ASCII"));
-//			os.write(Base64.getEncoder().encode(x509Certificate.getEncoded()));
-//			os.write("--END CERTIFICATE--\n".getBytes("US-ASCII"));
+
 
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
@@ -435,9 +451,9 @@ public class CertificateService {
 		}
 
 	}
-	
 
-	public void revokeCertificate(String serialNumber, CRLReason reason)
+
+		public void revokeCertificate(String serialNumber, CRLReason reason)
 			throws NoSuchProviderException, CertificateException, NoSuchAlgorithmException, InvalidKeyException {
 
 		List<Certificate> allActiveCertificates = certificateRepository.findAllActive();
