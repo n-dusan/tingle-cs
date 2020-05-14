@@ -318,8 +318,7 @@ export class CertificateIssuingComponent implements OnInit {
     extensions.basicConstraints = basicConstraints;
 
     // Attach Extended Key Usage in case of end-entity cert
-    if (this.selectedSubjectType === 'end-entity') {
-      console.log('END-ENTITY !!!')
+
       extendedKeyUsage.critical = this.fourthFormGroup.value.criticalExtendedKeyUsage;
       extendedKeyUsage.clientAuth = this.fourthFormGroup.value.clientAuth;
       extendedKeyUsage.codeSigning = this.fourthFormGroup.value.codeSigning;
@@ -329,7 +328,7 @@ export class CertificateIssuingComponent implements OnInit {
       extendedKeyUsage.timeStamping = this.fourthFormGroup.value.timeStamping;
 
       extensions.extendedKeyUsage = extendedKeyUsage;
-    }
+
 
     console.log(extensions)
 

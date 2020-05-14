@@ -60,6 +60,13 @@ public class KeyStoreService {
     }
 
 
+    public void downloadCertificate(X509Certificate certificate, String alias, PrivateKey privateKey) {
+        keyStoreWriter.loadKeyStore(null, "password".toCharArray());
+        keyStoreWriter.write(alias, privateKey, "password".toCharArray(), certificate);
+        keyStoreWriter.saveKeyStore("./download/" + alias + ".p12", "password".toCharArray());
+    }
+
+
     /**
      * @param certificateRole: Role from which the keystore will provide a list of certificates
      * forward null to get all certificates from all keystores
@@ -98,7 +105,7 @@ public class KeyStoreService {
 
 
     /**
-     * Metoda pravi root .jks, ako ga nema, i ubacuje u njega jedan self-signed sertifikat
+     * Metoda pravi root .p12, ako ga nema, i ubacuje u njega jedan self-signed sertifikat
      * @param: dto: DTO sent from frontend
      *  */
     public void generateRootKeyStore(CertificateX500NameDTO dto) throws CertificateException, ParseException, NoSuchAlgorithmException, SignatureException, NoSuchProviderException, InvalidKeyException {

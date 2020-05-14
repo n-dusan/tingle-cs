@@ -131,16 +131,22 @@ public class KeyStoreReader {
             }
         } catch (KeyStoreException e) {
             e.printStackTrace();
+            return null;
         }  catch (FileNotFoundException e) {
             e.printStackTrace();
+            return null;
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
+            return null;
         } catch (CertificateException e) {
             e.printStackTrace();
+            return null;
         } catch (IOException e) {
             e.printStackTrace();
+            return null;
         } catch (UnrecoverableKeyException e) {
             e.printStackTrace();
+            return null;
         }
         return null;
     }

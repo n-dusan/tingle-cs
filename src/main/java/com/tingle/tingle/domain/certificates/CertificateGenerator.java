@@ -12,7 +12,6 @@ import com.tingle.tingle.config.KeyStoreConfig;
 import com.tingle.tingle.domain.dto.*;
 import com.tingle.tingle.domain.enums.Role;
 import com.tingle.tingle.util.CConverter;
-import com.zaxxer.hikari.util.FastList;
 import org.bouncycastle.asn1.DERSequence;
 import org.bouncycastle.asn1.x500.X500NameBuilder;
 import org.bouncycastle.asn1.x500.style.BCStyle;
@@ -71,14 +70,20 @@ public class CertificateGenerator {
             int usages = generateKeyUsages(extensions.getKeyUsage());
             KeyUsage keyUsage = new KeyUsage(usages);
             certGen.addExtension(Extension.keyUsage, keyUsageDTO.isCritical(), keyUsage);
-            
-            ExtendedKeyUsageDTO extendedKeyUsageDTO;
-            if(extensions.getExtendedKeyUsage() != null) {
-            	extendedKeyUsageDTO = extensions.getExtendedKeyUsage();
-            	KeyPurposeId[] extendedUsages = generateExtendedKeyUsage(extensions.getExtendedKeyUsage());
-            	ExtendedKeyUsage extendedKeyUsage = new ExtendedKeyUsage(extendedUsages);
-            	certGen.addExtension(Extension.extendedKeyUsage, extendedKeyUsageDTO.isCritical(), extendedKeyUsage);
-            }
+
+            //### necessary for extended key usages
+			ExtendedKeyUsageDTO extendedKeyUsageDTO;
+			if(extensions.getExtendedKeyUsage() == null) {
+				extendedKeyUsageDTO = new ExtendedKeyUsageDTO();
+			} else {
+				extendedKeyUsageDTO = extensions.getExtendedKeyUsage();
+			}
+
+//			extendedKeyUsageDTO.setClientAuth(true);
+//			extendedKeyUsageDTO.setServerAuth(true);
+			KeyPurposeId[] extendedUsages = generateExtendedKeyUsage(extendedKeyUsageDTO);
+			ExtendedKeyUsage extendedKeyUsage = new ExtendedKeyUsage(extendedUsages);
+			certGen.addExtension(Extension.extendedKeyUsage, extendedKeyUsageDTO.isCritical(), extendedKeyUsage);
 
             //subject key identifier
 			//The SubjectKeyIdentifier extension is a standard X509v3 extension which MUST NOT be marked as being critical. .

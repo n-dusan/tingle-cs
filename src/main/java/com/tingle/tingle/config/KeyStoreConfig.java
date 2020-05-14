@@ -5,6 +5,13 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class KeyStoreConfig {
 
+    @Value("${tingle.truststore.location}")
+    private String trustStoreLocation;
+
+    @Value("${tingle.truststore.password}")
+    private String trustStorePassword;
+
+
     @Value("${tingle.root.keystore.location}")
     private String rootKeyStoreLocation;
 
@@ -36,72 +43,46 @@ public class KeyStoreConfig {
         return rootKeyStoreLocation;
     }
 
-    public void setRootKeyStoreLocation(String rootKeyStoreLocation) {
-        this.rootKeyStoreLocation = rootKeyStoreLocation;
-    }
-
     public String getIntermediateKeyStoreLocation() {
         return intermediateKeyStoreLocation;
-    }
-
-    public void setIntermediateKeyStoreLocation(String intermediateKeyStoreLocation) {
-        this.intermediateKeyStoreLocation = intermediateKeyStoreLocation;
     }
 
     public String getEndEntityKeyStoreLocation() {
         return endEntityKeyStoreLocation;
     }
 
-    public void setEndEntityKeyStoreLocation(String endEntityKeyStoreLocation) {
-        this.endEntityKeyStoreLocation = endEntityKeyStoreLocation;
-    }
 
     public String getRootKeyStorePassword() {
         return rootKeyStorePassword;
-    }
-
-    public void setRootKeyStorePassword(String rootKeyStorePassword) {
-        this.rootKeyStorePassword = rootKeyStorePassword;
     }
 
     public String getIntermediateKeyStorePassword() {
         return intermediateKeyStorePassword;
     }
 
-    public void setIntermediateKeyStorePassword(String intermediateKeyStorePassword) {
-        this.intermediateKeyStorePassword = intermediateKeyStorePassword;
-    }
 
     public String getEndEntityKeyStorePassword() {
         return endEntityKeyStorePassword;
-    }
-
-    public void setEndEntityKeyStorePassword(String endEntityKeyStorePassword) {
-        this.endEntityKeyStorePassword = endEntityKeyStorePassword;
     }
 
     public Integer getRootYears() {
         return rootYears;
     }
 
-    public void setRootYears(Integer rootYears) {
-        this.rootYears = rootYears;
-    }
-
     public Integer getIntermediateYears() {
         return intermediateYears;
-    }
-
-    public void setIntermediateYears(Integer intermediateYears) {
-        this.intermediateYears = intermediateYears;
     }
 
     public Integer getEndEntityYears() {
         return endEntityYears;
     }
 
-    public void setEndEntityYears(Integer endEntityYears) {
-        this.endEntityYears = endEntityYears;
+    public String getTrustStoreLocation() {
+        return trustStoreLocation;
+    }
+
+    public String getTrustStorePassword() {
+        return trustStorePassword;
     }
 
 }

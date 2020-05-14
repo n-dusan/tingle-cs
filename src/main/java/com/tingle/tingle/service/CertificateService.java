@@ -10,27 +10,22 @@ import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.naming.InvalidNameException;
 
-import org.apache.tomcat.util.codec.binary.Base64;
+import com.tingle.tingle.exception.ValidateException;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.BasicConstraints;
 import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.cert.CertIOException;
-import org.bouncycastle.cert.jcajce.JcaCertStore;
+
 import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder;
-import org.bouncycastle.cms.*;
-import org.bouncycastle.cms.jcajce.JcaSignerInfoGeneratorBuilder;
+
 import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
-import org.bouncycastle.operator.ContentSigner;
-import org.bouncycastle.operator.OperatorCreationException;
-import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
-import org.bouncycastle.operator.jcajce.JcaDigestCalculatorProviderBuilder;
+
 import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -178,7 +173,7 @@ public class CertificateService {
 	/**
 	 * Metoda generiše self-signed sertifikat i čuva u odgovarajući .jks fajl
 	 * (root.jks)
-	 * 
+	 *
 	 * @param dto: DTO primljen sa front-enda. Sadrzi sve podatke o kreiranju
 	 *             sertifikata U ovom slucaju, issuer i subject su ista firma
 	 * @throws CertIOException
@@ -212,6 +207,11 @@ public class CertificateService {
 		if (cAJoinedList == null) {
 			throw new Exception("There isn't any root!");
 		}
+
+		//ne znam zasto mi duplira root u cA
+		cAJoinedList = cAJoinedList.stream()
+				.distinct()
+				.collect(Collectors.toList());
 
 		for (X509Certificate x509Certificate : cAJoinedList) {
 			String serialNumber = x509Certificate.getSerialNumber().toString();
@@ -293,7 +293,7 @@ public class CertificateService {
 	 * OCSP request validation, a client sends the certificates' serialNumber that
 	 * he wants to validate OCSP Request service checks the database to find the
 	 * certificate.
-	 * 
+	 *
 	 * @returns: OCSPResponse enum wih the certificate status
 	 */
 	public OCSPResponse checkCertificate(String serialNumber) {
@@ -400,37 +400,38 @@ public class CertificateService {
 
 		X509Certificate x509Certificate = (X509Certificate) certificate;
 
-		IssuerData issuer;
+		PrivateKey privateKey;
 
-		issuer = keyStoreReader.readIssuerFromStore(config.getRootKeyStoreLocation(), serialNumber,
-				config.getRootKeyStorePassword().toCharArray(), config.getRootKeyStorePassword().toCharArray());
-		if (issuer == null) {
-			issuer = keyStoreReader.readIssuerFromStore(config.getIntermediateKeyStoreLocation(), serialNumber,
-					config.getIntermediateKeyStorePassword().toCharArray(),
-					config.getIntermediateKeyStorePassword().toCharArray());
+		privateKey = keyStoreReader.readPrivateKey(config.getRootKeyStoreLocation(), config.getRootKeyStorePassword(),
+				x509Certificate.getSerialNumber().toString(), config.getRootKeyStorePassword());
+
+		if(privateKey == null) {
+			privateKey = keyStoreReader.readPrivateKey(config.getIntermediateKeyStoreLocation(), config.getIntermediateKeyStorePassword(),
+					x509Certificate.getSerialNumber().toString(), config.getIntermediateKeyStorePassword());
 		}
-		if( issuer == null ) {
-			issuer = keyStoreReader.readIssuerFromStore(config.getEndEntityKeyStoreLocation(), serialNumber,
-					config.getEndEntityKeyStorePassword().toCharArray(),
-					config.getEndEntityKeyStorePassword().toCharArray());
+		if(privateKey == null) {
+			privateKey = keyStoreReader.readPrivateKey(config.getEndEntityKeyStoreLocation(), config.getEndEntityKeyStorePassword(),
+					x509Certificate.getSerialNumber().toString(), config.getEndEntityKeyStorePassword());
 		}
 
-		path = "./.ks/" + role.toString() + "-" + serialNumber + ".key";
+
+		path = "./download/" + role.toString() + "-" + serialNumber + ".key";
 		try {
 			PemWriter writer = new PemWriter(new FileWriter(path));
-			writer.writeObject(new PemObject("PRIVATE KEY", issuer.getPrivateKey().getEncoded()));
+			writer.writeObject(new PemObject("PRIVATE KEY", privateKey.getEncoded()));
 			writer.flush();
 			writer.close();
-		}catch (IOException e) {
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 
+		keyStoreService.downloadCertificate(x509Certificate, x509Certificate.getSerialNumber().toString(), privateKey);
 
 
 		JcaPEMWriter pemWrt = null;
 		try {
 
-			path = "./.ks/" + role.toString() + "-" + serialNumber + ".crt";
+			path = "./download/" + role.toString() + "-" + serialNumber + ".crt";
 
 			pemWrt = new JcaPEMWriter(new FileWriter(path));
 			pemWrt.writeObject(x509Certificate);
@@ -500,6 +501,21 @@ public class CertificateService {
 		}
 
 		return true;
+	}
+
+
+
+	public List<X509Certificate> findAllCertificates(List<String> serialNumbers) {
+		List<X509Certificate> x509CertificateList = new ArrayList<>();
+		for (String serialNumber : serialNumbers) {
+			X509Certificate x509 = keyStoreService.findCertificate(serialNumber);
+			if(x509 == null) {
+				throw new ValidateException("Couldn't find certificate with number: " + serialNumber);
+			}
+			x509CertificateList.add(x509);
+		}
+
+		return x509CertificateList;
 	}
 
 }

@@ -16,6 +16,7 @@ public class CertificateDTO {
     private CRLReason revokationReason;
 
 
+
     public CertificateDTO() {}
 
     public CertificateDTO(Long id, String serialNumber, boolean active, Role role, CRLReason revokationReason) {
@@ -24,6 +25,10 @@ public class CertificateDTO {
         this.active = active;
         this.certificateRole = role;
         this.revokationReason = revokationReason;
+    }
+
+    public CertificateDTO(String serialNumber) {
+        this.serialNumber = serialNumber;
     }
 
     public Long getId() {

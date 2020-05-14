@@ -1,4 +1,4 @@
-package com.tingle.tingle.controller;
+package com.tingle.tingle.exception;
 
 import com.tingle.tingle.exception.ValidateException;
 import org.springframework.core.Ordered;
@@ -21,7 +21,5 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     protected ResponseEntity<Object> validateException(ValidateException ex, WebRequest request) {
         return handleExceptionInternal(ex, ex.getMessage(), new HttpHeaders(), HttpStatus.BAD_REQUEST, request);
     }
-
-    //other exception handlers below
 
 }

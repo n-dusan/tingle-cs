@@ -4,7 +4,7 @@
 
 export const environment = {
   production: false,
-  protocol: 'http',
+  protocol: 'https',
   domainUrl: 'localhost',
   port: '8080',
   ocsp: '/api/ocsp',

@@ -64,4 +64,12 @@ public class KeyStoreWriter {
             e.printStackTrace();
         }
     }
+
+    public void setCertificateEntry(String alias, java.security.cert.Certificate certificate ) {
+        try {
+            keyStore.setCertificateEntry(alias, certificate);
+        } catch(KeyStoreException e) {
+            e.printStackTrace();
+        }
+    }
 }
