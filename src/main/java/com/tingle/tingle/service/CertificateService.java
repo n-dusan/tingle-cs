@@ -208,10 +208,10 @@ public class CertificateService {
 			throw new Exception("There isn't any root!");
 		}
 
-		//ne znam zasto mi duplira root u cA
-		cAJoinedList = cAJoinedList.stream()
-				.distinct()
-				.collect(Collectors.toList());
+//		//ne znam zasto mi duplira root u cA
+//		cAJoinedList = cAJoinedList.stream()
+//				.distinct()
+//				.collect(Collectors.toList());
 
 		for (X509Certificate x509Certificate : cAJoinedList) {
 			String serialNumber = x509Certificate.getSerialNumber().toString();

@@ -39,6 +39,7 @@ import { CertificateIssuingComponent } from './certificate-issuing/certificate-i
 import { RevokeDialogComponent } from './all-certificates/revoke-dialog/revoke-dialog.component';
 import { CheckCertificateComponent } from './check-certificate/check-certificate.component';
 
+import { ToastrModule } from 'ngx-toastr';
 
 
 
@@ -82,7 +83,8 @@ import { CheckCertificateComponent } from './check-certificate/check-certificate
     MatDialogModule,
     MatTooltipModule,
     MatPaginatorModule,
-    MatRadioModule
+    MatRadioModule,
+    ToastrModule.forRoot()
   ],
   providers: [],
   bootstrap: [AppComponent]

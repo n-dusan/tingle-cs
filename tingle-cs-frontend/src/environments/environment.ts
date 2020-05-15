@@ -8,7 +8,8 @@ export const environment = {
   domainUrl: 'localhost',
   port: '8080',
   ocsp: '/api/ocsp',
-  certificate: '/api/certificate'
+  certificate: '/api/certificate',
+  trust: '/api/trust-store'
 };
 
 /*

@@ -1,6 +1,6 @@
 <mat-card class="matcard" fxFlex="80%">
 
-  <div class="spinner-container" *ngIf="isLoading"> 
+  <div class="spinner-container" *ngIf="isLoading">
     <mat-spinner ></mat-spinner>
   </div>
 
@@ -36,6 +36,8 @@
     <button mat-raised-button [disabled]="selectedCertificate[1].revokationReason" color="warn" (click)="onRevoke()">Revoke</button>
     <button mat-raised-button color="primary"
       (click)="downloadCertificate(selectedCertificate[1].serialNumber)">Download</button>
+    <button mat-raised-button color="primary"
+      (click)="trustCertificate(selectedCertificate[1].serialNumber)">Trust</button>
   </mat-card-actions>
 
   <div class="row" [hidden]="!downloadCert">

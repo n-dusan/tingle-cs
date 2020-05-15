@@ -5,6 +5,7 @@ import { environment } from '../environments/environment'
 import { BehaviorSubject, Subject, Observable } from 'rxjs';
 import { skipWhile, take} from 'rxjs/operators';
 import { EndEntityCertificate } from './shared/end-entity-cert.model';
+import { TrustRequest } from './shared/trust-request.model';
 
 @Injectable({
     providedIn: 'root'
@@ -13,6 +14,7 @@ export class CertificatesService {
 
     certificateUrl = environment.protocol + '://' + environment.domainUrl + ':' + environment.port + environment.certificate;
     ocspUrl =  environment.protocol + '://' + environment.domainUrl + ':' + environment.port + environment.ocsp;
+    trustUrl = environment.protocol + '://' + environment.domainUrl + ':' + environment.port + environment.trust;
 
     certificates: BehaviorSubject<Certificate[]> = new BehaviorSubject<Certificate[]>(null);
 
@@ -77,6 +79,15 @@ export class CertificatesService {
 
     ocspRequest(serialNumber: string) : Observable<string> {
       return this.http.get<string>(`${this.ocspUrl}/check/${serialNumber}`);
+    }
+
+    trustCertificate(serialNumber: String) : Observable<Certificate[]> {
+        let serials: TrustRequest = new TrustRequest();
+        serials.serials = [];
+        console.log('wat i got', serials)
+        serials.serials.push(serialNumber);
+
+        return this.http.post<Certificate[]>(`${this.trustUrl}`, serials);
     }
 
 }

@@ -1,9 +1,10 @@
-import { Component, OnInit, OnDestroy, Input } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Certificate } from '../../shared/certificate.model';
 import { Subscription } from 'rxjs';
 import { CertificatesService } from '../../certificates.service';
 
 import { MatDialog } from '@angular/material/dialog';
+import { ToastrService } from 'ngx-toastr';
 
 import { RevokeDialogComponent } from '../revoke-dialog/revoke-dialog.component';
 
@@ -22,7 +23,10 @@ export class AllCertificatesItemComponent implements OnInit, OnDestroy {
   showError = false;
   isLoading = true;
 
-  constructor(private certificateService: CertificatesService, private dialog: MatDialog) { }
+  constructor(
+    private certificateService: CertificatesService,
+    private dialog: MatDialog,
+    private toastr: ToastrService) { }
 
 
   onRevoke() {
@@ -49,11 +53,22 @@ export class AllCertificatesItemComponent implements OnInit, OnDestroy {
   downloadCertificate(serialNumber: String){
     this.certificateService.downloadCertificate(serialNumber).subscribe(data=>{
       this.downloadCert = data;
+      this.toastr.success("Aww yeah", "You done did it buddy.")
     }, error=> {
       //something went wrong...
       this.showError = true;
+      this.toastr.error(":(", "Something went wrong with your download")
     })
 
+  }
+
+  trustCertificate(serialNumber: String) {
+    this.certificateService.trustCertificate(serialNumber).subscribe( (response:Certificate[]) => {
+      console.log('got a response', response);
+      this.toastr.success("Aww yeah", "You done did it buddy.")
+    }, error => {
+      this.toastr.error("!", "Something went wrong with your trust")
+    })
   }
 
 }

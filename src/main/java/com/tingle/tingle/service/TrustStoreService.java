@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -31,13 +30,10 @@ public class TrustStoreService {
 
     public void save(List<String> serialNumbers) {
         List<X509Certificate> certificates = certificateService.findAllCertificates(serialNumbers);
-        System.out.println("Did i find it? " + certificates.get(0).getSerialNumber().toString());
         keyStoreWriter.loadKeyStore(null, config.getTrustStorePassword().toCharArray());
         for (X509Certificate certificate : certificates) {
-            System.out.println("did or here?");
             keyStoreWriter.setCertificateEntry(certificate.getSerialNumber().toString(), ((Certificate) certificate));
         }
-        System.out.println("did i fail here?");
         keyStoreWriter.saveKeyStore(config.getTrustStoreLocation(), config.getTrustStorePassword().toCharArray());
     }
 
