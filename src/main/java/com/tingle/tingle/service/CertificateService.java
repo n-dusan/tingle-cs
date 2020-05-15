@@ -415,7 +415,7 @@ public class CertificateService {
 		}
 
 
-		path = "./download/" + role.toString() + "-" + serialNumber + ".key";
+		path = "./certificates/" + role.toString() + "-" + serialNumber + ".key";
 		try {
 			PemWriter writer = new PemWriter(new FileWriter(path));
 			writer.writeObject(new PemObject("PRIVATE KEY", privateKey.getEncoded()));
@@ -431,7 +431,7 @@ public class CertificateService {
 		JcaPEMWriter pemWrt = null;
 		try {
 
-			path = "./download/" + role.toString() + "-" + serialNumber + ".crt";
+			path = "./certificates/" + role.toString() + "-" + serialNumber + ".crt";
 
 			pemWrt = new JcaPEMWriter(new FileWriter(path));
 			pemWrt.writeObject(x509Certificate);

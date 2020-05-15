@@ -68,8 +68,8 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
             "browserTarget": "tingle-cs-frontend:build",
-              "sslKey": "tls/END_ENTITY-998196994307.key",
-              "sslCert": "tls/END_ENTITY-998196994307.crt"
+              "sslKey": "tls/END_ENTITY-839670267199.key",
+              "sslCert": "tls/END_ENTITY-839670267199.crt"
           },
           "configurations": {
             "production": {

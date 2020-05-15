@@ -63,7 +63,7 @@ public class KeyStoreService {
     public void downloadCertificate(X509Certificate certificate, String alias, PrivateKey privateKey) {
         keyStoreWriter.loadKeyStore(null, "password".toCharArray());
         keyStoreWriter.write(alias, privateKey, "password".toCharArray(), certificate);
-        keyStoreWriter.saveKeyStore("./download/" + alias + ".p12", "password".toCharArray());
+        keyStoreWriter.saveKeyStore("./certificates/" + alias + ".p12", "password".toCharArray());
     }
 
 
